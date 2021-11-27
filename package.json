@@ -18,6 +18,7 @@
     "discord-api-types": "^0.24.0",
     "discord.js": "^13.3.1",
     "dotenv": "^10.0.0",
-    "fast-csv": "^4.3.6"
+    "ethereum-address": "^0.0.4",
+    "mongoose": "^6.0.13"
   }
 }

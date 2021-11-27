@@ -4,7 +4,6 @@ const getErrorEmbed = (name, address, errorCode, minutesToCheck) => {
     .setColor("#FF0000")
     .setTitle(name)
     .setURL(`https://etherscan.io/address/${address}`)
-    .setAuthor("Vary Gee BOT")
     .setDescription(
       `Failed to fetch results for last ${minutesToCheck} minutes. Error code/reason: ${errorCode}`
     )
@@ -16,7 +15,6 @@ const getBasicMintInfoEmbed = (name, address, minutesToCheck) => {
     .setColor("#0099ff")
     .setTitle(name)
     .setURL(`https://etherscan.io/address/${address}`)
-    .setAuthor("Vary Gee BOT")
     .setTimestamp();
 };
 
@@ -24,7 +22,6 @@ const getFollowingInfoEmbed = (count) => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Minting updates")
-    .setAuthor("Vary Gee BOT")
     .setDescription(`Currently watching ${count} addresses:`)
     .setTimestamp();
 };
@@ -33,7 +30,60 @@ const getNoUpdatesEmbed = (minutes) => {
   return new MessageEmbed()
     .setColor("#FFFF00")
     .setTitle(`No updates in the last ${minutes} minutes`)
-    .setAuthor("Vary Gee BOT")
+    .setTimestamp();
+};
+
+const getHelpEmbed = () => {
+  return new MessageEmbed()
+    .setColor("#0099ff")
+    .setTitle("Commands")
+    .setDescription(`The following commands are available:`)
+    .addFields(
+      {
+        name: "!alertHere",
+        value: "Sets the current channel as the channel for the bot alerts.",
+      },
+      {
+        name: "!infoHere",
+        value: "Sets the current channel as the channel for bot info.",
+      },
+      {
+        name: "!add `<address>` `<nickname>`",
+        value: "Adds new ETH address to watchlist. ",
+      },
+      {
+        name: "!remove `<address>`",
+        value: "Removes ETH address to watchlist.",
+      },
+      {
+        name: "!who",
+        value: "Shows the addresses the bot is currently tracking.",
+      },
+      { name: "!toggle", value: "Starts/stops the scheduled messages." },
+      {
+        name: "!info",
+        value: "Displays the current channels used for bot messages.",
+      },
+      { name: "!help", value: "Get the list of all possible commands." }
+    )
+    .setTimestamp();
+};
+
+const getInfoEmbed = (alertChannelId, infoChannelId) => {
+  return new MessageEmbed()
+    .setColor("#0099ff")
+    .setTitle("Channel config info")
+    .setDescription(`The following channels are being used for bot messages:`)
+    .addFields(
+      {
+        name: "Alert channel",
+        value: `<#${alertChannelId}>`,
+      },
+      {
+        name: "Info channel",
+        value: infoChannelId ? `<#${infoChannelId}>` : "Not set.",
+      }
+    )
     .setTimestamp();
 };
 
@@ -42,4 +92,6 @@ export {
   getBasicMintInfoEmbed,
   getFollowingInfoEmbed,
   getNoUpdatesEmbed,
+  getHelpEmbed,
+  getInfoEmbed,
 };
