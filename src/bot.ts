@@ -1,7 +1,15 @@
-import { Client, Intents } from "discord.js";
+import {
+  Client,
+  Guild,
+  GuildMember,
+  Intents,
+  Message,
+  MessageEmbed,
+  TextChannel,
+} from "discord.js";
 import dotenv from "dotenv";
 import cron from "cron";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import {
   getErrorEmbed,
   getBasicMintInfoEmbed,
@@ -12,24 +20,33 @@ import {
 } from "./embeds.js";
 import MongoDb from "./mongo.js";
 import ethereum_address from "ethereum-address";
+import {
+  DatabaseRepository,
+  ServerData,
+  MongoResult,
+  EtherscanParams,
+  ResultTransaction,
+  EtherscanApiResult,
+  MintCountObject,
+} from "../@types/bot";
 dotenv.config();
 
-const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
-const mongo = new MongoDb(MONGO_URI);
+const MONGO_URI: string = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
+const mongo: DatabaseRepository = new MongoDb(MONGO_URI);
 
-const ETHERSCAN_ADDRESS_URL = "https://etherscan.io/address";
-const ETHERSCAN_API_URL = "https://api.etherscan.io/api";
-const OPENSEA_URL = "https://opensea.io/assets";
+const ETHERSCAN_ADDRESS_URL: string = "https://etherscan.io/address";
+const ETHERSCAN_API_URL: string = "https://api.etherscan.io/api";
+const OPENSEA_URL: string = "https://opensea.io/assets";
 
-const BLACK_HOLE_ADDRESS = "0x0000000000000000000000000000000000000000";
+const BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
 
-const cache = new Map();
+const cache: Map<string, ServerData> = new Map();
 
-const CRON_STRING = "* * * * *";
-const MINUTES_TO_CHECK = 2;
+const CRON_STRING: string = "* * * * *";
+const MINUTES_TO_CHECK: number = 60 * 24;
 
-const CMD_PREFIX = ".";
-const ETHERSCAN_PARAMS = {
+const CMD_PREFIX: string = ".";
+const ETHERSCAN_PARAMS: EtherscanParams = {
   module: "account",
   action: "tokennfttx",
   page: 1,
@@ -40,30 +57,50 @@ const ETHERSCAN_PARAMS = {
   apikey: process.env.ETHERSCAN_API_SECRET,
 };
 
-const client = new Client({
+const client: Client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
 
-const isWithinMinutes = (timestamp, mins) => {
+const isWithinMinutes = (timestamp: string, mins: number): boolean => {
   return Date.now() - parseInt(timestamp) * 1000 <= mins * 60 * 1000;
 };
 
-const getMintedForFollowingAddresses = async (serverId) => {
-  const { alertChannelId, infoChannelId, addressMap } = cache.get(serverId);
-  const guild = client.guilds.cache.get(serverId);
-  const channel = guild.channels.cache.get(alertChannelId);
-  let infoChannel;
-  if (infoChannelId) {
-    infoChannel = guild.channels.cache.get(infoChannelId);
+const getMintedForFollowingAddresses = async (
+  serverId: string
+): Promise<void> => {
+  let cacheResult: ServerData | undefined = cache.get(serverId);
+  if (!cacheResult) {
+    return;
   }
-  let noUpdates = true;
+  const { alertChannelId, infoChannelId, addressMap } = cacheResult;
+
+  if (!alertChannelId || !addressMap) {
+    return;
+  }
+
+  const guild: Guild | undefined = client.guilds.cache.get(serverId);
+
+  const channel: TextChannel = guild?.channels.cache.get(
+    alertChannelId
+  ) as TextChannel;
+
+  let infoChannel: TextChannel | undefined = undefined;
+  if (infoChannelId) {
+    infoChannel = guild?.channels.cache.get(infoChannelId) as TextChannel;
+  }
+
+  let noUpdates: boolean = true;
   for (const [address, name] of addressMap.entries()) {
-    let res;
+    let res: EtherscanApiResult;
     try {
       ETHERSCAN_PARAMS.address = address;
-      res = await axios.get(ETHERSCAN_API_URL, {
-        params: ETHERSCAN_PARAMS,
-      });
+      const apiRes: AxiosResponse<any, any> = await axios.get(
+        ETHERSCAN_API_URL,
+        {
+          params: ETHERSCAN_PARAMS,
+        }
+      );
+      res = apiRes.data;
     } catch (e) {
       infoChannel &&
         infoChannel.send({
@@ -74,23 +111,19 @@ const getMintedForFollowingAddresses = async (serverId) => {
       return;
     }
 
-    if (res.data.status === "0") {
+    if (res.status === "0") {
       infoChannel &&
         infoChannel.send({
-          embeds: [
-            getErrorEmbed(name, address, res.data.message, MINUTES_TO_CHECK),
-          ],
+          embeds: [getErrorEmbed(name, address, res.message, MINUTES_TO_CHECK)],
         });
       return;
     }
 
-    const mintInfoEmbed = getBasicMintInfoEmbed(
-      name,
-      address,
-      MINUTES_TO_CHECK
-    );
+    const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
 
-    const mintCount = getApiResponseAsMap(res.data["result"]);
+    const mintCount: Map<string, MintCountObject> = getApiResponseAsMap(
+      res["result"]
+    );
 
     addFieldsToEmbed(mintCount, mintInfoEmbed, name);
 
@@ -104,22 +137,24 @@ const getMintedForFollowingAddresses = async (serverId) => {
   }
 };
 
-const getApiResponseAsMap = (apiResponse) => {
-  const mintCount = new Map();
+const getApiResponseAsMap = (
+  apiResponse: ResultTransaction[]
+): Map<string, MintCountObject> => {
+  const mintCount: Map<string, MintCountObject> = new Map();
   if (apiResponse) {
     for (let result of apiResponse) {
       if (
         result["from"] === BLACK_HOLE_ADDRESS &&
         isWithinMinutes(result["timeStamp"], MINUTES_TO_CHECK)
       ) {
-        if (!mintCount.get(result["contractAddress"])) {
+        const itemFromMap = mintCount.get(result["contractAddress"]);
+        if (!itemFromMap) {
           mintCount.set(result["contractAddress"], {
             tokenIds: [result["tokenID"]],
             collectionName: result["tokenName"],
           });
         } else {
-          const item = mintCount.get(result["contractAddress"]);
-          item.tokenIds.push(result["tokenID"]);
+          itemFromMap.tokenIds.push(result["tokenID"]);
         }
       }
     }
@@ -127,8 +162,12 @@ const getApiResponseAsMap = (apiResponse) => {
   return mintCount;
 };
 
-const addFieldsToEmbed = (mintCountMap, embed, ownerName) => {
-  let colNames = [];
+const addFieldsToEmbed = (
+  mintCountMap: Map<string, MintCountObject>,
+  embed: MessageEmbed,
+  ownerName: string
+): void => {
+  let colNames: string[] = [];
   for (const [nftAddress, info] of mintCountMap.entries()) {
     const etherscanLink = `[Etherscan](${ETHERSCAN_ADDRESS_URL}/${nftAddress})`;
     const openseaLink = `[Opensea](${OPENSEA_URL}/${nftAddress}/${info.tokenIds[0]})`;
@@ -143,36 +182,50 @@ const addFieldsToEmbed = (mintCountMap, embed, ownerName) => {
   );
 };
 
-const getFollowingListAsMessage = (serverId) => {
-  const addressMap = cache.get(serverId).addressMap;
-  const exampleEmbed = getFollowingInfoEmbed(addressMap.size);
+const getFollowingListAsMessage = (serverId: string): MessageEmbed => {
+  let cacheResult: ServerData | undefined = cache.get(serverId);
+  const addressMap: Map<string, string> | undefined = cacheResult?.addressMap;
+  const exampleEmbed = getFollowingInfoEmbed(addressMap ? addressMap.size : 0);
   let index = 1;
-  addressMap.forEach((value, key) => {
-    exampleEmbed.addField(
-      `${index}. ${value}`,
-      `[${key}](${ETHERSCAN_ADDRESS_URL}/${key})`
-    );
-    index++;
-  });
+  if (addressMap && addressMap.size > 0) {
+    addressMap.forEach((value, key) => {
+      exampleEmbed.addField(
+        `${index}. ${value}`,
+        `[${key}](${ETHERSCAN_ADDRESS_URL}/${key})`
+      );
+      index++;
+    });
+  }
   return exampleEmbed;
 };
 
-const restartAllRunningCrons = async () => {
-  const runningCrons = await mongo.findAllStartedJobs();
+const restartAllRunningCrons = async (): Promise<void> => {
+  const runningCrons: MongoResult[] = await mongo.findAllStartedJobs();
+
   runningCrons.forEach((dbData) => {
-    cache.set(dbData._id, dbData);
+    const serverData: ServerData = mongoResultToServerData(dbData);
+    cache.set(dbData._id, serverData);
     let cacheItem = cache.get(dbData._id);
-    cacheItem.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
+    cacheItem!.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
       getMintedForFollowingAddresses(dbData._id);
     });
-    cacheItem.scheduledMessage.start();
+    cacheItem!.scheduledMessage.start();
   });
   console.log(`Restarted ${runningCrons.length} crons.`);
 };
 
+const mongoResultToServerData = (dbData: MongoResult): ServerData => {
+  return {
+    alertChannelId: dbData.alertChannelId,
+    infoChannelId: dbData.infoChannelId,
+    areScheduledMessagesOn: dbData.areScheduledMessagesOn,
+    addressMap: dbData.addressMap,
+  };
+};
+
 client.once("ready", async () => {
-  console.log(`Online as ${client.user.tag}`);
-  client.user.setActivity("Candy Crush");
+  console.log(`Online as ${client?.user?.tag}`);
+  client?.user?.setActivity("Candy Crush");
   await restartAllRunningCrons();
 });
 
@@ -181,13 +234,30 @@ client.on("guildCreate", (guild) => {
   mongo.save(guild.id, {});
 });
 
-client.on("messageCreate", async (msg) => {
-  const { content, channel, guild, member } = msg;
-  if (msg.author.bot || !content.startsWith(".")) {
+client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
+  const {
+    content,
+    guild,
+    member,
+  }: {
+    content: string;
+    guild: Guild | null;
+    member: GuildMember | null;
+  } = msg;
+
+  let channel: TextChannel;
+
+  if (msg.channel.type === "GUILD_TEXT") {
+    channel = msg.channel as TextChannel;
+  } else {
     return;
   }
 
-  if (!guild.me.permissionsIn(channel).has("SEND_MESSAGES")) {
+  if (msg.author.bot || !content.startsWith(".") || !guild || !member) {
+    return;
+  }
+
+  if (!guild.me?.permissionsIn(channel).has("SEND_MESSAGES")) {
     console.log("No permissions in channel");
     return;
   }
@@ -197,11 +267,13 @@ client.on("messageCreate", async (msg) => {
     return;
   }
 
-  let data = cache.get(guild.id);
+  let data: ServerData | undefined = cache.get(guild.id);
   if (!data) {
-    data = await mongo.find(guild.id);
-    if (!data) {
+    const dbData: MongoResult = await mongo.find(guild.id);
+    if (!dbData) {
       data = {};
+    } else {
+      data = mongoResultToServerData(dbData);
     }
     cache.set(guild.id, data);
   }
@@ -210,12 +282,7 @@ client.on("messageCreate", async (msg) => {
     msg.reply({ embeds: [getHelpEmbed()] });
   }
 
-  if (
-    content !== ".help" &&
-    content !== ".alertHere" &&
-    content !== ".infoHere" &&
-    !data.alertChannelId
-  ) {
+  if (!data.alertChannelId && content !== ".help") {
     msg.reply(
       "You need to set a channel for the alerts by using the `.alertHere` command."
     );
@@ -301,14 +368,14 @@ client.on("messageCreate", async (msg) => {
       return;
     }
     if (data.areScheduledMessagesOn) {
-      client.user.setActivity("Candy Crush");
+      client?.user?.setActivity("Candy Crush");
       data.areScheduledMessagesOn = false;
       mongo.save(guild.id, { areScheduledMessagesOn: false });
-      data.scheduledMessage.stop();
+      if (data.scheduledMessage) data.scheduledMessage.stop();
       msg.reply("Turned scheduled messages off.");
       console.log("Turned scheduled messages off.");
     } else {
-      client.user.setActivity("the specified wallets", { type: "WATCHING" });
+      client?.user?.setActivity("the specified wallets", { type: "WATCHING" });
       data.areScheduledMessagesOn = true;
       mongo.save(guild.id, { areScheduledMessagesOn: true });
       if (!data.scheduledMessage) {

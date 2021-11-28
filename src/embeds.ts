@@ -1,5 +1,10 @@
 import { MessageEmbed } from "discord.js";
-const getErrorEmbed = (name, address, errorCode, minutesToCheck) => {
+const getErrorEmbed = (
+  name: string,
+  address: string,
+  errorCode: string,
+  minutesToCheck: number
+): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#FF0000")
     .setTitle(name)
@@ -10,7 +15,7 @@ const getErrorEmbed = (name, address, errorCode, minutesToCheck) => {
     .setTimestamp();
 };
 
-const getBasicMintInfoEmbed = (name, address, minutesToCheck) => {
+const getBasicMintInfoEmbed = (name: string, address: string): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle(name)
@@ -18,7 +23,7 @@ const getBasicMintInfoEmbed = (name, address, minutesToCheck) => {
     .setTimestamp();
 };
 
-const getFollowingInfoEmbed = (count) => {
+const getFollowingInfoEmbed = (count: number): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Minting updates")
@@ -26,14 +31,14 @@ const getFollowingInfoEmbed = (count) => {
     .setTimestamp();
 };
 
-const getNoUpdatesEmbed = (minutes) => {
+const getNoUpdatesEmbed = (minutes: number): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#FFFF00")
     .setTitle(`No updates in the last ${minutes} minutes`)
     .setTimestamp();
 };
 
-const getHelpEmbed = () => {
+const getHelpEmbed = (): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Commands")
@@ -69,7 +74,10 @@ const getHelpEmbed = () => {
     .setTimestamp();
 };
 
-const getInfoEmbed = (alertChannelId, infoChannelId) => {
+const getInfoEmbed = (
+  alertChannelId: string | undefined,
+  infoChannelId: string | undefined
+): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Channel config info")

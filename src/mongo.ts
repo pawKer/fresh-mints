@@ -1,19 +1,18 @@
 import mongoose from "mongoose";
 import { ServerSettings } from "./models.js";
+import { DatabaseRepository, ServerDataDTO, MongoResult } from "../@types/bot";
 
-class MongoDb {
-  constructor(uri) {
-    mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+class MongoDb implements DatabaseRepository {
+  db: mongoose.Connection;
+  constructor(uri: string) {
+    mongoose.connect(uri);
     this.db = mongoose.connection;
     this.db.on("error", console.error.bind(console, "connection error: "));
     this.db.once("open", function () {
       console.log("Connected to MongoDb successfully");
     });
   }
-  async save(serverId, serverSettings) {
+  async save(serverId: string, serverSettings: ServerDataDTO): Promise<void> {
     try {
       await ServerSettings.findOneAndUpdate(
         {
@@ -30,26 +29,29 @@ class MongoDb {
     }
   }
 
-  async find(serverId) {
-    let res;
+  async find(serverId: string): Promise<MongoResult | null> {
+    let res: MongoResult | null;
     try {
       res = await ServerSettings.findOne({
         _id: serverId,
       });
+      console.log("Fetched data from DB");
+      return res;
     } catch (error) {
       console.error(error);
     }
-    return res;
+    return Promise.reject();
   }
 
-  async findAllStartedJobs() {
-    let res;
+  async findAllStartedJobs(): Promise<MongoResult[]> {
+    let res: MongoResult[];
     try {
       res = await ServerSettings.find({ areScheduledMessagesOn: true });
+      return res;
     } catch (error) {
       console.error(error);
     }
-    return res;
+    return Promise.reject();
   }
 }
 export default MongoDb;
