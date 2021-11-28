@@ -41,5 +41,15 @@ class MongoDb {
     }
     return res;
   }
+
+  async findAllStartedJobs() {
+    let res;
+    try {
+      res = await ServerSettings.find({ areScheduledMessagesOn: true });
+    } catch (error) {
+      console.error(error);
+    }
+    return res;
+  }
 }
 export default MongoDb;

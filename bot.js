@@ -28,6 +28,7 @@ const cache = new Map();
 const CRON_STRING = "* * * * *";
 const MINUTES_TO_CHECK = 2;
 
+const CMD_PREFIX = ".";
 const ETHERSCAN_PARAMS = {
   module: "account",
   action: "tokennfttx",
@@ -47,8 +48,8 @@ const isWithinMinutes = (timestamp, mins) => {
   return Date.now() - parseInt(timestamp) * 1000 <= mins * 60 * 1000;
 };
 
-const getMintedForFollowingAddresses = async (serverId, data) => {
-  const { alertChannelId, infoChannelId, addressMap } = data;
+const getMintedForFollowingAddresses = async (serverId) => {
+  const { alertChannelId, infoChannelId, addressMap } = cache.get(serverId);
   const guild = client.guilds.cache.get(serverId);
   const channel = guild.channels.cache.get(alertChannelId);
   let no_updates_channel;
@@ -154,18 +155,46 @@ const getFollowingListAsMessage = (serverId) => {
   return exampleEmbed;
 };
 
-client.once("ready", () => {
+const restartAllRunningCrons = async () => {
+  const runningCrons = await mongo.findAllStartedJobs();
+  runningCrons.forEach((dbData) => {
+    cache.set(dbData._id, dbData);
+    let cacheItem = cache.get(dbData._id);
+    cacheItem.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
+      getMintedForFollowingAddresses(dbData._id);
+    });
+    cacheItem.scheduledMessage.start();
+  });
+  console.log(`Restarted ${runningCrons.length} crons.`);
+};
+
+client.once("ready", async () => {
   console.log(`Online as ${client.user.tag}`);
   client.user.setActivity("Candy Crush");
+  await restartAllRunningCrons();
 });
 
 client.on("guildCreate", (guild) => {
   console.log(`Joined a new guild: ${guild.name} - ${guild.id}`);
-  mongo.save(serverId, {});
+  mongo.save(guild.id, {});
 });
 
 client.on("messageCreate", async (msg) => {
-  const { content, channel, guild } = msg;
+  const { content, channel, guild, member } = msg;
+  if (msg.author.bot || !content.startsWith(".")) {
+    return;
+  }
+
+  if (!guild.me.permissionsIn(channel).has("SEND_MESSAGES")) {
+    console.log("No permissions in channel");
+    return;
+  }
+
+  if (!member.permissions.has("ADMINISTRATOR")) {
+    msg.reply("You do not have permission to run this command.");
+    return;
+  }
+
   let data = cache.get(guild.id);
   if (!data) {
     data = await mongo.find(guild.id);
@@ -175,27 +204,26 @@ client.on("messageCreate", async (msg) => {
     cache.set(guild.id, data);
   }
 
-  if (content === "!help") {
+  if (content === ".help") {
     msg.reply({ embeds: [getHelpEmbed()] });
   }
 
   if (
-    content.startsWith("!") &&
-    content !== "!help" &&
-    content !== "!alertHere" &&
-    content !== "!infoHere" &&
+    content !== ".help" &&
+    content !== ".alertHere" &&
+    content !== ".infoHere" &&
     !data.alertChannelId
   ) {
     msg.reply(
-      "You need to set a channel for the alerts by using the `!alertHere` command."
+      "You need to set a channel for the alerts by using the `.alertHere` command."
     );
     msg.reply(
-      "You can also set a channel for other info using the `!infoHere` command"
+      "You can also set a channel for other info using the `.infoHere` command"
     );
     return;
   }
 
-  if (content === "!alertHere") {
+  if (content === ".alertHere") {
     data.alertChannelId = channel.id;
     mongo.save(guild.id, {
       alertChannelId: data.alertChannelId,
@@ -203,7 +231,7 @@ client.on("messageCreate", async (msg) => {
     msg.reply(`Alert channel set to <#${data.alertChannelId}>.`);
   }
 
-  if (content === "!infoHere") {
+  if (content === ".infoHere") {
     data.infoChannelId = channel.id;
     mongo.save(guild.id, {
       infoChannelId: data.infoChannelId,
@@ -211,20 +239,20 @@ client.on("messageCreate", async (msg) => {
     msg.reply(`Info channel set to <#${data.infoChannelId}>.`);
   }
 
-  if (content === "!info") {
+  if (content === ".info") {
     msg.reply({
       embeds: [getInfoEmbed(data.alertChannelId, data.infoChannelId)],
     });
   }
 
-  if (content === "!who") {
+  if (content === ".who") {
     msg.reply({ embeds: [getFollowingListAsMessage(guild.id)] });
   }
 
-  if (content.startsWith("!add")) {
+  if (content.startsWith(".add")) {
     const tokens = content.split(" ");
     if (tokens.length !== 3) {
-      msg.reply("Message needs to be in format `!add <address> <name>`!");
+      msg.reply("Message needs to be in format `.add <address> <name>`!");
       return;
     }
     const address = tokens[1];
@@ -241,16 +269,16 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (content.startsWith("!remove")) {
+  if (content.startsWith(".remove")) {
     const tokens = content.split(" ");
     if (tokens.length !== 2) {
-      msg.reply("Message needs to be in format `!remove <address>`!");
+      msg.reply("Message needs to be in format `.remove <address>`!");
       return;
     }
     const address = tokens[1];
     if (!data.addressMap || data.addressMap.size === 0) {
       msg.reply(
-        "You are currently not following any ETH addresses. Use the `!add` command to add some."
+        "You are currently not following any ETH addresses. Use the `.add` command to add some."
       );
       return;
     }
@@ -263,10 +291,10 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (content === "!toggle") {
+  if (content === ".toggle") {
     if (!data.addressMap || data.addressMap.size === 0) {
       msg.reply(
-        "You are currently not following any ETH addresses. Use the `!add` command to add some."
+        "You are currently not following any ETH addresses. Use the `.add` command to add some."
       );
       return;
     }
@@ -281,9 +309,11 @@ client.on("messageCreate", async (msg) => {
       client.user.setActivity("the specified wallets", { type: "WATCHING" });
       data.areScheduledMessagesOn = true;
       mongo.save(guild.id, { areScheduledMessagesOn: true });
-      data.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
-        getMintedForFollowingAddresses(guild.id, data);
-      });
+      if (!data.scheduledMessage) {
+        data.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
+          getMintedForFollowingAddresses(guild.id);
+        });
+      }
       data.scheduledMessage.start();
       msg.reply("Turned scheduled messages on.");
       console.log("Turned scheduled messages on.");

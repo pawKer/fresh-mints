@@ -40,31 +40,31 @@ const getHelpEmbed = () => {
     .setDescription(`The following commands are available:`)
     .addFields(
       {
-        name: "!alertHere",
+        name: ".alertHere",
         value: "Sets the current channel as the channel for the bot alerts.",
       },
       {
-        name: "!infoHere",
+        name: ".infoHere",
         value: "Sets the current channel as the channel for bot info.",
       },
       {
-        name: "!add `<address>` `<nickname>`",
+        name: ".add `<address>` `<nickname>`",
         value: "Adds new ETH address to watchlist. ",
       },
       {
-        name: "!remove `<address>`",
+        name: ".remove `<address>`",
         value: "Removes ETH address to watchlist.",
       },
       {
-        name: "!who",
+        name: ".who",
         value: "Shows the addresses the bot is currently tracking.",
       },
-      { name: "!toggle", value: "Starts/stops the scheduled messages." },
+      { name: ".toggle", value: "Starts/stops the scheduled messages." },
       {
-        name: "!info",
+        name: ".info",
         value: "Displays the current channels used for bot messages.",
       },
-      { name: "!help", value: "Get the list of all possible commands." }
+      { name: ".help", value: "Get the list of all possible commands." }
     )
     .setTimestamp();
 };
