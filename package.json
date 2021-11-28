@@ -5,7 +5,8 @@
   "main": "build/bot.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/bot.ts"
+    "dev": "nodemon src/bot.ts",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
