@@ -1,5 +1,6 @@
 version: "3.9"
 services:
   discord-bot:
-    build: .
-    dockerfile: Dockerfile-pi
+    build:
+      context: .
+      dockerfile: Dockerfile-pi
