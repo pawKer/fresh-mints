@@ -22,7 +22,6 @@
   "devDependencies": {
     "@types/ethereum-address": "file:./@types/ethereum-address",
     "@types/cron": "^1.7.3",
-    "@types/mongoose": "^5.11.97",
     "@types/node": "^16.11.10",
     "discord-api-types": "^0.24.0",
     "nodemon": "^2.0.15",
