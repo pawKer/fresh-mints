@@ -52,9 +52,9 @@ const getMintedForFollowingAddresses = async (serverId) => {
   const { alertChannelId, infoChannelId, addressMap } = cache.get(serverId);
   const guild = client.guilds.cache.get(serverId);
   const channel = guild.channels.cache.get(alertChannelId);
-  let no_updates_channel;
+  let infoChannel;
   if (infoChannelId) {
-    no_updates_channel = guild.channels.cache.get(infoChannelId);
+    infoChannel = guild.channels.cache.get(infoChannelId);
   }
   let noUpdates = true;
   for (const [address, name] of addressMap.entries()) {
@@ -65,20 +65,22 @@ const getMintedForFollowingAddresses = async (serverId) => {
         params: ETHERSCAN_PARAMS,
       });
     } catch (e) {
-      channel.send({
-        embeds: [
-          getErrorEmbed(name, address, e.response.status, MINUTES_TO_CHECK),
-        ],
-      });
+      infoChannel &&
+        infoChannel.send({
+          embeds: [
+            getErrorEmbed(name, address, e.response.status, MINUTES_TO_CHECK),
+          ],
+        });
       return;
     }
 
     if (res.data.status === "0") {
-      channel.send({
-        embeds: [
-          getErrorEmbed(name, address, res.data.message, MINUTES_TO_CHECK),
-        ],
-      });
+      infoChannel &&
+        infoChannel.send({
+          embeds: [
+            getErrorEmbed(name, address, res.data.message, MINUTES_TO_CHECK),
+          ],
+        });
       return;
     }
 
@@ -97,8 +99,8 @@ const getMintedForFollowingAddresses = async (serverId) => {
       noUpdates = false;
     }
   }
-  if (no_updates_channel && noUpdates) {
-    no_updates_channel.send({ embeds: [getNoUpdatesEmbed(MINUTES_TO_CHECK)] });
+  if (infoChannel && noUpdates) {
+    infoChannel.send({ embeds: [getNoUpdatesEmbed(MINUTES_TO_CHECK)] });
   }
 };
 
