@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import cron from "cron";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 import {
   getErrorEmbed,
   getBasicMintInfoEmbed,
@@ -24,46 +24,34 @@ import {
   DatabaseRepository,
   ServerData,
   MongoResult,
-  EtherscanParams,
-  ResultTransaction,
-  EtherscanApiResult,
   MintCountObject,
+  EthApiClient,
 } from "../@types/bot";
+import EtherscanClient from "./api-clients/etherscan-client.js";
+import CovalentClient from "./api-clients/covalent-client.js";
 dotenv.config();
 
-const MONGO_URI: string = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
+const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
 const mongo: DatabaseRepository = new MongoDb(MONGO_URI);
 
-const ETHERSCAN_ADDRESS_URL: string = "https://etherscan.io/address";
-const ETHERSCAN_API_URL: string = "https://api.etherscan.io/api";
-const OPENSEA_URL: string = "https://opensea.io/assets";
+let useEtherscan = false;
+let apiClient: EthApiClient = new CovalentClient();
 
-const BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
+const ETHERSCAN_ADDRESS_URL = "https://etherscan.io/address";
+const OPENSEA_URL = "https://opensea.io/assets";
+
+const ADMIN_ID = "204731639438376970";
 
 const cache: Map<string, ServerData> = new Map();
 
-const CRON_STRING: string = "* * * * *";
-const MINUTES_TO_CHECK: number = 2;
+const CRON_STRING = "* * * * *";
+const MINUTES_TO_CHECK = 2;
 
-const CMD_PREFIX: string = ".";
-const ETHERSCAN_PARAMS: EtherscanParams = {
-  module: "account",
-  action: "tokennfttx",
-  page: 1,
-  offset: 100,
-  startblock: 0,
-  endblock: 27025780,
-  sort: "desc",
-  apikey: process.env.ETHERSCAN_API_SECRET,
-};
+const CMD_PREFIX = ".";
 
 const client: Client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
-
-const isWithinMinutes = (timestamp: string, mins: number): boolean => {
-  return Date.now() - parseInt(timestamp) * 1000 <= mins * 60 * 1000;
-};
 
 const getMintedForFollowingAddresses = async (
   serverId: string
@@ -91,48 +79,28 @@ const getMintedForFollowingAddresses = async (
 
   let noUpdates: boolean = true;
   for (const [address, name] of addressMap.entries()) {
-    let res: EtherscanApiResult;
+    let mintCount: Map<string, MintCountObject>;
     try {
-      ETHERSCAN_PARAMS.address = address;
-      const apiRes: AxiosResponse<any, any> = await axios.get(
-        ETHERSCAN_API_URL,
-        {
-          params: ETHERSCAN_PARAMS,
-        }
+      mintCount = await apiClient.getApiResponseAsMap(
+        address,
+        MINUTES_TO_CHECK
       );
-      res = apiRes.data;
     } catch (e) {
+      let message: string;
       if (axios.isAxiosError(e) && e.response) {
-        infoChannel &&
-          infoChannel.send({
-            embeds: [
-              getErrorEmbed(
-                name,
-                address,
-                `${e.response.status} - ${e.response.data}`,
-                MINUTES_TO_CHECK
-              ),
-            ],
-          });
+        message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
       } else {
-        console.error(e.message);
+        message = e.message;
       }
-      return;
-    }
-
-    if (res.status === "0") {
       infoChannel &&
         infoChannel.send({
-          embeds: [getErrorEmbed(name, address, res.message, MINUTES_TO_CHECK)],
+          embeds: [getErrorEmbed(name, address, message, MINUTES_TO_CHECK)],
         });
-      return;
+      console.error(message);
+      continue;
     }
 
     const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
-
-    const mintCount: Map<string, MintCountObject> = getApiResponseAsMap(
-      res.result
-    );
 
     addFieldsToEmbed(mintCount, mintInfoEmbed);
 
@@ -146,32 +114,6 @@ const getMintedForFollowingAddresses = async (
   }
 };
 
-const getApiResponseAsMap = (
-  apiResponse: ResultTransaction[]
-): Map<string, MintCountObject> => {
-  const mintCount: Map<string, MintCountObject> = new Map();
-  if (apiResponse) {
-    for (let result of apiResponse) {
-      if (isWithinMinutes(result["timeStamp"], MINUTES_TO_CHECK)) {
-        if (result["from"] === BLACK_HOLE_ADDRESS) {
-          const itemFromMap = mintCount.get(result["contractAddress"]);
-          if (!itemFromMap) {
-            mintCount.set(result["contractAddress"], {
-              tokenIds: [result["tokenID"]],
-              collectionName: result["tokenName"] || result["tokenSymbol"],
-            });
-          } else {
-            itemFromMap.tokenIds.push(result["tokenID"]);
-          }
-        }
-      } else {
-        break;
-      }
-    }
-  }
-  return mintCount;
-};
-
 const addFieldsToEmbed = (
   mintCountMap: Map<string, MintCountObject>,
   embed: MessageEmbed
@@ -179,7 +121,9 @@ const addFieldsToEmbed = (
   let colNames: string[] = [];
   for (const [nftAddress, info] of mintCountMap.entries()) {
     const etherscanLink = `[Etherscan](${ETHERSCAN_ADDRESS_URL}/${nftAddress})`;
-    const openseaLink = `[Opensea](${OPENSEA_URL}/${nftAddress}/${info.tokenIds[0]})`;
+    const openseaLink = `[Opensea](${OPENSEA_URL}/${nftAddress}/${
+      info.tokenIds[0] || "1"
+    })`;
     const collectionName = info.collectionName
       ? info.collectionName
       : "<Name not available>";
@@ -292,6 +236,20 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
       data = mongoResultToServerData(dbData);
     }
     cache.set(guild.id, data);
+  }
+
+  if (member.id === ADMIN_ID) {
+    if (content === ".changeApiClient") {
+      if (useEtherscan) {
+        apiClient = new CovalentClient();
+        useEtherscan = false;
+        msg.reply("Changed API client to Covalent.");
+      } else {
+        apiClient = new EtherscanClient();
+        useEtherscan = true;
+        msg.reply("Changed API client to Etherscan.");
+      }
+    }
   }
 
   if (content === ".help") {

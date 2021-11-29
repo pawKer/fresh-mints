@@ -6,6 +6,8 @@ import { EtherscanParams } from "./EtherscanParams";
 import { ResultTransaction } from "./ResultTransaction";
 import { EtherscanApiResult } from "./EtherscanApiResult";
 import { MintCountObject } from "./MintCountObject";
+import { EthApiClient } from "./EthApiClient";
+import { CovalentApiResult } from "./CovalentApiResult";
 
 export {
   DatabaseRepository,
@@ -16,4 +18,6 @@ export {
   ResultTransaction,
   EtherscanApiResult,
   MintCountObject,
+  EthApiClient,
+  CovalentApiResult,
 };
