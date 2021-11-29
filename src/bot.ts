@@ -39,13 +39,12 @@ let apiClient: EthApiClient = new CovalentClient();
 
 const ETHERSCAN_ADDRESS_URL = "https://etherscan.io/address";
 const OPENSEA_URL = "https://opensea.io/assets";
-
 const ADMIN_ID = "204731639438376970";
 
 const cache: Map<string, ServerData> = new Map();
 
 const CRON_STRING = "* * * * *";
-const MINUTES_TO_CHECK = 2;
+let MINUTES_TO_CHECK = 2;
 
 const CMD_PREFIX = ".";
 
@@ -249,6 +248,13 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
         useEtherscan = true;
         msg.reply("Changed API client to Etherscan.");
       }
+    }
+
+    if (content.startsWith(".setMinutes")) {
+      const tokens = content.split(" ");
+      const mins = parseInt(tokens[1]);
+      MINUTES_TO_CHECK = mins;
+      msg.reply(`Set minutes to check to ${MINUTES_TO_CHECK}.`);
     }
   }
 

@@ -56,9 +56,10 @@ class CovalentClient implements EthApiClient {
 
           let log_event = item.log_events[0];
 
-          if (!log_event.decoded) {
+          if (!log_event.decoded || !(log_event.decoded.params.length >= 2)) {
             continue;
           }
+
           let fromAddr = log_event.decoded.params[0].value;
           let toAddr = log_event.decoded.params[1].value;
           let collectionName = log_event.sender_name;
