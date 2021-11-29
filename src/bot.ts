@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import cron from "cron";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import {
   getErrorEmbed,
   getBasicMintInfoEmbed,
@@ -43,7 +43,7 @@ const BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
 const cache: Map<string, ServerData> = new Map();
 
 const CRON_STRING: string = "* * * * *";
-const MINUTES_TO_CHECK: number = 60 * 24;
+const MINUTES_TO_CHECK: number = 2;
 
 const CMD_PREFIX: string = ".";
 const ETHERSCAN_PARAMS: EtherscanParams = {
@@ -102,12 +102,21 @@ const getMintedForFollowingAddresses = async (
       );
       res = apiRes.data;
     } catch (e) {
-      infoChannel &&
-        infoChannel.send({
-          embeds: [
-            getErrorEmbed(name, address, e.response.status, MINUTES_TO_CHECK),
-          ],
-        });
+      if (axios.isAxiosError(e) && e.response) {
+        infoChannel &&
+          infoChannel.send({
+            embeds: [
+              getErrorEmbed(
+                name,
+                address,
+                `${e.response.status} - ${e.response.data}`,
+                MINUTES_TO_CHECK
+              ),
+            ],
+          });
+      } else {
+        console.error(e.message);
+      }
       return;
     }
 
@@ -122,7 +131,7 @@ const getMintedForFollowingAddresses = async (
     const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
 
     const mintCount: Map<string, MintCountObject> = getApiResponseAsMap(
-      res["result"]
+      res.result
     );
 
     addFieldsToEmbed(mintCount, mintInfoEmbed, name);
@@ -171,14 +180,21 @@ const addFieldsToEmbed = (
   for (const [nftAddress, info] of mintCountMap.entries()) {
     const etherscanLink = `[Etherscan](${ETHERSCAN_ADDRESS_URL}/${nftAddress})`;
     const openseaLink = `[Opensea](${OPENSEA_URL}/${nftAddress}/${info.tokenIds[0]})`;
+    const collectionName = info.collectionName
+      ? info.collectionName
+      : "<Name not available>";
     embed.addField(
-      `${info.collectionName} - Qty: ${info.tokenIds.length}`,
+      `${collectionName} - Qty: ${info.tokenIds.length}`,
       `${etherscanLink} - ${openseaLink}`
     );
-    colNames.push(info.collectionName);
+    if (collectionName !== "<Name not available>") {
+      colNames.push(collectionName);
+    }
   }
   embed.setDescription(
-    `${ownerName} minted ${colNames} in the last ${MINUTES_TO_CHECK} minutes`
+    `${ownerName} minted ${
+      colNames.length > 0 ? colNames : "these"
+    } in the last ${MINUTES_TO_CHECK} minutes`
   );
 };
 
