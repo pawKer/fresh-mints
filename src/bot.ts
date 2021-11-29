@@ -134,7 +134,7 @@ const getMintedForFollowingAddresses = async (
       res.result
     );
 
-    addFieldsToEmbed(mintCount, mintInfoEmbed, name);
+    addFieldsToEmbed(mintCount, mintInfoEmbed);
 
     if (mintCount.size > 0) {
       channel.send({ embeds: [mintInfoEmbed] });
@@ -152,19 +152,20 @@ const getApiResponseAsMap = (
   const mintCount: Map<string, MintCountObject> = new Map();
   if (apiResponse) {
     for (let result of apiResponse) {
-      if (
-        result["from"] === BLACK_HOLE_ADDRESS &&
-        isWithinMinutes(result["timeStamp"], MINUTES_TO_CHECK)
-      ) {
-        const itemFromMap = mintCount.get(result["contractAddress"]);
-        if (!itemFromMap) {
-          mintCount.set(result["contractAddress"], {
-            tokenIds: [result["tokenID"]],
-            collectionName: result["tokenName"],
-          });
-        } else {
-          itemFromMap.tokenIds.push(result["tokenID"]);
+      if (isWithinMinutes(result["timeStamp"], MINUTES_TO_CHECK)) {
+        if (result["from"] === BLACK_HOLE_ADDRESS) {
+          const itemFromMap = mintCount.get(result["contractAddress"]);
+          if (!itemFromMap) {
+            mintCount.set(result["contractAddress"], {
+              tokenIds: [result["tokenID"]],
+              collectionName: result["tokenName"] || result["tokenSymbol"],
+            });
+          } else {
+            itemFromMap.tokenIds.push(result["tokenID"]);
+          }
         }
+      } else {
+        break;
       }
     }
   }
@@ -173,8 +174,7 @@ const getApiResponseAsMap = (
 
 const addFieldsToEmbed = (
   mintCountMap: Map<string, MintCountObject>,
-  embed: MessageEmbed,
-  ownerName: string
+  embed: MessageEmbed
 ): void => {
   let colNames: string[] = [];
   for (const [nftAddress, info] of mintCountMap.entries()) {
@@ -192,7 +192,7 @@ const addFieldsToEmbed = (
     }
   }
   embed.setDescription(
-    `${ownerName} minted ${
+    `Minted ${
       colNames.length > 0 ? colNames : "these"
     } in the last ${MINUTES_TO_CHECK} minutes`
   );
