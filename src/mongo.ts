@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ServerSettings } from "./models.js";
+import { ServerSettings } from "./models";
 import { DatabaseRepository, ServerDataDTO, MongoResult } from "../@types/bot";
 
 class MongoDb implements DatabaseRepository {

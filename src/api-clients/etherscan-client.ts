@@ -6,7 +6,7 @@ import {
   MintCountObject,
   ResultTransaction,
 } from "../../@types/bot";
-import { isWithinMinutes } from "../utils.js";
+import { isWithinMinutes } from "../utils";
 
 class EtherscanClient implements EthApiClient {
   NAME: string = "Etherscan";

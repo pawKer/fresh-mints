@@ -4,7 +4,7 @@ import {
   EthApiClient,
   MintCountObject,
 } from "../../@types/bot";
-import { isWithinMinutes } from "../utils.js";
+import { isWithinMinutes } from "../utils";
 
 interface CovalentParams {
   pageNumber: number;

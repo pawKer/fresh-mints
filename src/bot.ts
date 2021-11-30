@@ -17,8 +17,8 @@ import {
   getNoUpdatesEmbed,
   getHelpEmbed,
   getInfoEmbed,
-} from "./embeds.js";
-import MongoDb from "./mongo.js";
+} from "./embeds";
+import MongoDb from "./mongo";
 import ethereum_address from "ethereum-address";
 import {
   DatabaseRepository,
@@ -28,10 +28,11 @@ import {
   EthApiClient,
   WalletCacheItem,
 } from "../@types/bot";
-import EtherscanClient from "./api-clients/etherscan-client.js";
-import CovalentClient from "./api-clients/covalent-client.js";
-import { isWithinMinutes } from "./utils.js";
-import cronTime from "cron-time-generator";
+import EtherscanClient from "./api-clients/etherscan-client";
+import CovalentClient from "./api-clients/covalent-client";
+import { isWithinMinutes } from "./utils";
+// Had to change module to commmonjs because of this import
+import { default as cronTime } from "cron-time-generator";
 import cronstrue from "cronstrue";
 dotenv.config();
 
@@ -272,7 +273,7 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
 
   let data: ServerData | undefined = cache.get(guild.id);
   if (!data) {
-    const dbData: MongoResult = await mongo.find(guild.id);
+    const dbData: MongoResult | null = await mongo.find(guild.id);
     if (!dbData) {
       data = {};
     } else {
@@ -469,7 +470,6 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
   }
 
   if (content.startsWith(".setAlertRole")) {
-    console.log(msg.mentions);
     let mentionedRole = msg.mentions.roles.first()?.id;
     if (!mentionedRole) {
       msg.reply("Message must be in the format `.setAlertRole @<role>.`");
