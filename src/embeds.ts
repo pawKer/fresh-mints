@@ -66,6 +66,19 @@ const getHelpEmbed = (): MessageEmbed => {
       },
       { name: ".toggle", value: "Starts/stops the scheduled messages." },
       {
+        name: ".setSchedule `<minutes>`",
+        value:
+          "Sets the interval at which the bot will check the addresses. Needs to be between 1 and 60 minutes.",
+      },
+      {
+        name: ".setAlertRole `@<role>`",
+        value: "Sets a role that will be tagged when there is a new alert.",
+      },
+      {
+        name: ".clearAlertRole",
+        value: "Clears the alert role.",
+      },
+      {
         name: ".info",
         value: "Displays the current channels used for bot messages.",
       },
@@ -76,9 +89,11 @@ const getHelpEmbed = (): MessageEmbed => {
 
 const getInfoEmbed = (
   alertChannelId: string | undefined,
-  infoChannelId: string | undefined
+  infoChannelId: string | undefined,
+  schedule: string,
+  alertRole: string | undefined
 ): MessageEmbed => {
-  return new MessageEmbed()
+  let infoEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Channel config info")
     .setDescription(`The following channels are being used for bot messages:`)
@@ -90,9 +105,20 @@ const getInfoEmbed = (
       {
         name: "Info channel",
         value: infoChannelId ? `<#${infoChannelId}>` : "Not set.",
+      },
+      {
+        name: "Schedule",
+        value: `The bot will check the addresses: \`${schedule}\`.`,
       }
     )
     .setTimestamp();
+  if (alertRole) {
+    infoEmbed.addField("Alert role", `<@&${alertRole}>`);
+  } else {
+    infoEmbed.addField("Alert role", `No role set.`);
+  }
+
+  return infoEmbed;
 };
 
 export {

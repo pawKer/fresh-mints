@@ -6,4 +6,7 @@ export interface ServerData {
   areScheduledMessagesOn?: boolean;
   scheduledMessage?: CronJob;
   addressMap?: Map<string, string>;
+  minutesToCheck?: number;
+  schedule?: string;
+  alertRole?: string;
 }

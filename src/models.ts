@@ -19,6 +19,9 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
       default: false,
     },
     addressMap: Map,
+    minutesToCheck: Number,
+    schedule: String,
+    alertRole: String,
   });
 
 const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(

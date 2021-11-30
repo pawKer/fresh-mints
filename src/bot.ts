@@ -26,9 +26,13 @@ import {
   MongoResult,
   MintCountObject,
   EthApiClient,
+  WalletCacheItem,
 } from "../@types/bot";
 import EtherscanClient from "./api-clients/etherscan-client.js";
 import CovalentClient from "./api-clients/covalent-client.js";
+import { isWithinMinutes } from "./utils.js";
+import cronTime from "cron-time-generator";
+import cronstrue from "cronstrue";
 dotenv.config();
 
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
@@ -42,9 +46,10 @@ const OPENSEA_URL = "https://opensea.io/assets";
 const ADMIN_ID = "204731639438376970";
 
 const cache: Map<string, ServerData> = new Map();
+const requestCache: Map<string, WalletCacheItem> = new Map();
 
-const CRON_STRING = "* * * * *";
-let MINUTES_TO_CHECK = 2;
+const DEFAULT_SCHEDULE = "* * * * *";
+const DEFAULT_MINUTES_TO_CHECK = 2;
 
 const CMD_PREFIX = ".";
 
@@ -59,9 +64,16 @@ const getMintedForFollowingAddresses = async (
   if (!cacheResult) {
     return;
   }
-  const { alertChannelId, infoChannelId, addressMap } = cacheResult;
+  const {
+    alertChannelId,
+    infoChannelId,
+    addressMap,
+    minutesToCheck,
+    alertRole,
+  } = cacheResult;
 
-  if (!alertChannelId || !addressMap) {
+  if (!alertChannelId || !addressMap || !minutesToCheck) {
+    console.error("GET_DATA", "Some fields were not populated.");
     return;
   }
 
@@ -79,43 +91,59 @@ const getMintedForFollowingAddresses = async (
   let noUpdates: boolean = true;
   for (const [address, name] of addressMap.entries()) {
     let mintCount: Map<string, MintCountObject>;
-    try {
-      mintCount = await apiClient.getApiResponseAsMap(
-        address,
-        MINUTES_TO_CHECK
-      );
-    } catch (e) {
-      let message: string;
-      if (axios.isAxiosError(e) && e.response) {
-        message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
-      } else {
-        message = e.message;
-      }
-      infoChannel &&
-        infoChannel.send({
-          embeds: [getErrorEmbed(name, address, message, MINUTES_TO_CHECK)],
+    let cacheItem = requestCache.get(address);
+    if (cacheItem && isWithinMinutes(cacheItem.lastUpdated, minutesToCheck)) {
+      mintCount = cacheItem.mintedMap;
+    } else {
+      try {
+        mintCount = await apiClient.getApiResponseAsMap(
+          address,
+          minutesToCheck
+        );
+        requestCache.set(address, {
+          mintedMap: mintCount,
+          lastUpdated: Date.now().toString(),
         });
-      console.error(message);
-      continue;
+      } catch (e) {
+        let message: string;
+        if (axios.isAxiosError(e) && e.response) {
+          message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
+        } else {
+          message = e.message;
+        }
+        infoChannel &&
+          infoChannel.send({
+            embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
+          });
+        console.error("API_CLIENT_ERROR", message);
+        continue;
+      }
     }
 
     const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
 
-    addFieldsToEmbed(mintCount, mintInfoEmbed);
+    addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
 
     if (mintCount.size > 0) {
       channel.send({ embeds: [mintInfoEmbed] });
       noUpdates = false;
     }
   }
-  if (infoChannel && noUpdates) {
-    infoChannel.send({ embeds: [getNoUpdatesEmbed(MINUTES_TO_CHECK)] });
+  if (!noUpdates) {
+    if (alertRole) {
+      channel.send(`<@&${alertRole}>`);
+    }
+  } else {
+    if (infoChannel) {
+      infoChannel.send({ embeds: [getNoUpdatesEmbed(minutesToCheck)] });
+    }
   }
 };
 
 const addFieldsToEmbed = (
   mintCountMap: Map<string, MintCountObject>,
-  embed: MessageEmbed
+  embed: MessageEmbed,
+  minutesToCheck: number
 ): void => {
   let colNames: string[] = [];
   for (const [nftAddress, info] of mintCountMap.entries()) {
@@ -137,7 +165,7 @@ const addFieldsToEmbed = (
   embed.setDescription(
     `Minted ${
       colNames.length > 0 ? colNames : "these"
-    } in the last ${MINUTES_TO_CHECK} minutes`
+    } in the last ${minutesToCheck} minutes`
   );
 };
 
@@ -162,35 +190,49 @@ const restartAllRunningCrons = async (): Promise<void> => {
   const runningCrons: MongoResult[] = await mongo.findAllStartedJobs();
 
   runningCrons.forEach((dbData) => {
-    const serverData: ServerData = mongoResultToServerData(dbData);
+    const serverData: ServerData = dbData;
+    if (!serverData.minutesToCheck || !serverData.schedule) {
+      serverData.minutesToCheck = DEFAULT_MINUTES_TO_CHECK;
+      serverData.schedule = DEFAULT_SCHEDULE;
+      mongo.save(dbData._id, {
+        minutesToCheck: serverData.minutesToCheck,
+        schedule: serverData.schedule,
+      });
+    }
     cache.set(dbData._id, serverData);
     let cacheItem = cache.get(dbData._id);
-    cacheItem!.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
-      getMintedForFollowingAddresses(dbData._id);
-    });
+    cacheItem!.scheduledMessage = new cron.CronJob(
+      serverData.schedule,
+      async () => {
+        getMintedForFollowingAddresses(dbData._id);
+      }
+    );
     cacheItem!.scheduledMessage.start();
   });
   console.log(`Restarted ${runningCrons.length} crons.`);
 };
 
-const mongoResultToServerData = (dbData: MongoResult): ServerData => {
-  return {
-    alertChannelId: dbData.alertChannelId,
-    infoChannelId: dbData.infoChannelId,
-    areScheduledMessagesOn: dbData.areScheduledMessagesOn,
-    addressMap: dbData.addressMap,
-  };
+const logApiRequests = () => {
+  console.log("API REQUESTS in the last hour", apiClient.API_REQUEST_COUNT);
+  apiClient.API_REQUEST_COUNT = 0;
 };
 
 client.once("ready", async () => {
   console.log(`Online as ${client?.user?.tag}`);
   client?.user?.setActivity("Candy Crush");
   await restartAllRunningCrons();
+  let logApiReqs = new cron.CronJob("0 * * * *", async () => {
+    logApiRequests();
+  });
+  logApiReqs.start();
 });
 
 client.on("guildCreate", (guild) => {
   console.log(`Joined a new guild: ${guild.name} - ${guild.id}`);
-  mongo.save(guild.id, {});
+  mongo.save(guild.id, {
+    minutesToCheck: DEFAULT_MINUTES_TO_CHECK,
+    schedule: DEFAULT_SCHEDULE,
+  });
 });
 
 client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
@@ -232,7 +274,15 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
     if (!dbData) {
       data = {};
     } else {
-      data = mongoResultToServerData(dbData);
+      data = dbData;
+      if (!data.minutesToCheck || !data.schedule) {
+        data.minutesToCheck = DEFAULT_MINUTES_TO_CHECK;
+        data.schedule = DEFAULT_SCHEDULE;
+        mongo.save(guild.id, {
+          minutesToCheck: data.minutesToCheck,
+          schedule: data.schedule,
+        });
+      }
     }
     cache.set(guild.id, data);
   }
@@ -242,19 +292,30 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
       if (useEtherscan) {
         apiClient = new CovalentClient();
         useEtherscan = false;
-        msg.reply("Changed API client to Covalent.");
       } else {
         apiClient = new EtherscanClient();
         useEtherscan = true;
-        msg.reply("Changed API client to Etherscan.");
       }
+      msg.reply(`Changed API client to ${apiClient.NAME}`);
     }
-
     if (content.startsWith(".setMinutes")) {
       const tokens = content.split(" ");
+      if (tokens.length !== 2) {
+        msg.reply(
+          "Message must be in format `.setMinutes <number-of-minutes>`."
+        );
+        return;
+      }
       const mins = parseInt(tokens[1]);
-      MINUTES_TO_CHECK = mins;
-      msg.reply(`Set minutes to check to ${MINUTES_TO_CHECK}.`);
+      if (!mins) {
+        msg.reply("Second argument must be a number!");
+        return;
+      }
+      data.minutesToCheck = mins;
+      mongo.save(guild.id, {
+        minutesToCheck: data.minutesToCheck,
+      });
+      msg.reply(`Set minutes to ${data.minutesToCheck}.`);
     }
   }
 
@@ -290,7 +351,14 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
 
   if (content === ".info") {
     msg.reply({
-      embeds: [getInfoEmbed(data.alertChannelId, data.infoChannelId)],
+      embeds: [
+        getInfoEmbed(
+          data.alertChannelId,
+          data.infoChannelId,
+          cronstrue.toString(data.schedule || DEFAULT_SCHEDULE),
+          data.alertRole
+        ),
+      ],
     });
   }
 
@@ -359,14 +427,61 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
       data.areScheduledMessagesOn = true;
       mongo.save(guild.id, { areScheduledMessagesOn: true });
       if (!data.scheduledMessage) {
-        data.scheduledMessage = new cron.CronJob(CRON_STRING, async () => {
-          getMintedForFollowingAddresses(guild.id);
-        });
+        data.scheduledMessage = new cron.CronJob(
+          data.schedule || DEFAULT_SCHEDULE,
+          async () => {
+            getMintedForFollowingAddresses(guild.id);
+          }
+        );
       }
       data.scheduledMessage.start();
       msg.reply("Turned scheduled messages on.");
       console.log("Turned scheduled messages on.");
     }
+  }
+
+  if (content.startsWith(".setSchedule")) {
+    const tokens = content.split(" ");
+    if (tokens.length !== 2) {
+      msg.reply(
+        "Message must be in format `.setSchedule <number-of-minutes>`."
+      );
+      return;
+    }
+    const mins = parseInt(tokens[1]);
+    if (!mins) {
+      msg.reply("Second argument must be a number!");
+      return;
+    }
+    if (mins < 1 || mins > 60) {
+      msg.reply("Interval needs to be between 1 and 60 minutes.");
+      return;
+    }
+    data.minutesToCheck = mins + 1;
+    data.schedule = cronTime.every(mins).minutes();
+    mongo.save(guild.id, {
+      minutesToCheck: data.minutesToCheck,
+      schedule: data.schedule,
+    });
+    msg.reply(`Set schedule to \`${cronstrue.toString(data.schedule)}\`.`);
+  }
+
+  if (content.startsWith(".setAlertRole")) {
+    console.log(msg.mentions);
+    let mentionedRole = msg.mentions.roles.first()?.id;
+    if (!mentionedRole) {
+      msg.reply("Message must be in the format `.setAlertRole @<role>.`");
+      return;
+    }
+    data.alertRole = mentionedRole;
+    mongo.save(guild.id, { alertRole: data.alertRole });
+    msg.reply(`Alert role set to: <@&${mentionedRole}>.`);
+  }
+
+  if (content === ".clearAlertRole") {
+    data.alertRole = "";
+    mongo.save(guild.id, { alertRole: data.alertRole });
+    msg.reply(`Alert role has been reset.`);
   }
 });
 

@@ -12,11 +12,13 @@ interface CovalentParams {
 }
 
 class CovalentClient implements EthApiClient {
+  NAME: string = "Covalent";
   COVALENT_PARAMS: CovalentParams = {
     pageNumber: 0,
     pageSize: 25,
   };
   BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
+  public API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
     address: string,
@@ -29,6 +31,7 @@ class CovalentClient implements EthApiClient {
         password: "",
       },
     });
+    this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
     const mintCount: Map<string, MintCountObject> = this.#getApiResponseAsMap(
       res,
@@ -56,7 +59,11 @@ class CovalentClient implements EthApiClient {
 
           let log_event = item.log_events[0];
 
-          if (!log_event.decoded || !(log_event.decoded.params.length >= 2)) {
+          if (
+            !log_event.decoded ||
+            !log_event.decoded.params ||
+            !(log_event.decoded.params.length >= 2)
+          ) {
             continue;
           }
 

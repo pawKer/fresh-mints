@@ -14,14 +14,16 @@
     "@discordjs/rest": "*",
     "axios": "^0.24.0",
     "cron": "^1.8.2",
+    "cron-time-generator": "^1.2.2",
+    "cronstrue": "^1.122.0",
     "discord.js": "^13.3.1",
     "dotenv": "^10.0.0",
     "ethereum-address": "^0.0.4",
     "mongoose": "^6.0.13"
   },
   "devDependencies": {
-    "@types/ethereum-address": "file:./@types/ethereum-address",
     "@types/cron": "^1.7.3",
+    "@types/ethereum-address": "file:./@types/ethereum-address",
     "@types/node": "^16.11.10",
     "discord-api-types": "^0.24.0",
     "nodemon": "^2.0.15",

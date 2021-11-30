@@ -8,6 +8,7 @@ import { EtherscanApiResult } from "./EtherscanApiResult";
 import { MintCountObject } from "./MintCountObject";
 import { EthApiClient } from "./EthApiClient";
 import { CovalentApiResult } from "./CovalentApiResult";
+import { WalletCacheItem } from "./WalletCacheItem";
 
 export {
   DatabaseRepository,
@@ -20,4 +21,5 @@ export {
   MintCountObject,
   EthApiClient,
   CovalentApiResult,
+  WalletCacheItem,
 };

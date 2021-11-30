@@ -9,6 +9,7 @@ import {
 import { isWithinMinutes } from "../utils.js";
 
 class EtherscanClient implements EthApiClient {
+  NAME: string = "Etherscan";
   ETHERSCAN_API_URL: string = "https://api.etherscan.io/api";
   ETHERSCAN_PARAMS: EtherscanParams = {
     module: "account",
@@ -21,6 +22,7 @@ class EtherscanClient implements EthApiClient {
     apikey: process.env.ETHERSCAN_API_SECRET,
   };
   BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
+  API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
     address: string,
@@ -34,6 +36,7 @@ class EtherscanClient implements EthApiClient {
         params: params,
       }
     );
+    this.API_REQUEST_COUNT++;
     const res: EtherscanApiResult = apiRes.data;
     if (res.status === "0") {
       throw new Error("Failed to get results from Etherscan.");
