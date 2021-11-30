@@ -80,7 +80,7 @@ const getHelpEmbed = (): MessageEmbed => {
       },
       {
         name: ".info",
-        value: "Displays the current channels used for bot messages.",
+        value: "Displays the current server configuration.",
       },
       { name: ".help", value: "Get the list of all possible commands." }
     )
@@ -109,15 +109,13 @@ const getInfoEmbed = (
       {
         name: "Schedule",
         value: `The bot will check the addresses: \`${schedule}\`.`,
+      },
+      {
+        name: "Alert role",
+        value: alertRole ? `<@&${alertRole}>` : "No role set.",
       }
     )
     .setTimestamp();
-  if (alertRole) {
-    infoEmbed.addField("Alert role", `<@&${alertRole}>`);
-  } else {
-    infoEmbed.addField("Alert role", `No role set.`);
-  }
-
   return infoEmbed;
 };
 

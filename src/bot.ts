@@ -186,7 +186,7 @@ const getFollowingListAsMessage = (serverId: string): MessageEmbed => {
   return exampleEmbed;
 };
 
-const restartAllRunningCrons = async (): Promise<void> => {
+const restartAllRunningCrons = async (client: Client): Promise<void> => {
   const runningCrons: MongoResult[] = await mongo.findAllStartedJobs();
 
   runningCrons.forEach((dbData) => {
@@ -209,6 +209,8 @@ const restartAllRunningCrons = async (): Promise<void> => {
     );
     cacheItem!.scheduledMessage.start();
   });
+  if (runningCrons.length > 0)
+    client?.user?.setActivity("the specified wallets", { type: "WATCHING" });
   console.log(`Restarted ${runningCrons.length} crons.`);
 };
 
@@ -220,7 +222,7 @@ const logApiRequests = () => {
 client.once("ready", async () => {
   console.log(`Online as ${client?.user?.tag}`);
   client?.user?.setActivity("Candy Crush");
-  await restartAllRunningCrons();
+  await restartAllRunningCrons(client);
   let logApiReqs = new cron.CronJob("0 * * * *", async () => {
     logApiRequests();
   });
@@ -323,16 +325,6 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
     msg.reply({ embeds: [getHelpEmbed()] });
   }
 
-  if (!data.alertChannelId && content !== ".help") {
-    msg.reply(
-      "You need to set a channel for the alerts by using the `.alertHere` command."
-    );
-    msg.reply(
-      "You can also set a channel for other info using the `.infoHere` command"
-    );
-    return;
-  }
-
   if (content === ".alertHere") {
     data.alertChannelId = channel.id;
     mongo.save(guild.id, {
@@ -347,6 +339,16 @@ client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
       infoChannelId: data.infoChannelId,
     });
     msg.reply(`Info channel set to <#${data.infoChannelId}>.`);
+  }
+
+  if (!data.alertChannelId && content !== ".help") {
+    msg.reply(
+      "You need to set a channel for the alerts by using the `.alertHere` command."
+    );
+    msg.reply(
+      "You can also set a channel for other info using the `.infoHere` command"
+    );
+    return;
   }
 
   if (content === ".info") {
