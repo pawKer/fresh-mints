@@ -1,5 +1,3 @@
-import { CronJob } from "cron";
-
 export interface ServerDataDTO {
   alertChannelId?: string;
   infoChannelId?: string;

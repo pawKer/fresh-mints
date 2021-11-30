@@ -1,4 +1,4 @@
-import ResultTransaction from "./ResultTransaction";
+import { ResultTransaction } from "./ResultTransaction";
 
 export interface EtherscanApiResult {
   status: string;

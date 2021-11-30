@@ -15,7 +15,6 @@
         "es6"
       ],
       "esModuleInterop": true,
-      "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "allowUnreachableCode": true,
       "noFallthroughCasesInSwitch": true,
