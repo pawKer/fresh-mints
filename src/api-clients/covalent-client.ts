@@ -56,36 +56,35 @@ class CovalentClient implements EthApiClient {
           if (!item.log_events || !(item.log_events.length > 0)) {
             continue;
           }
+          for (let log_event of item.log_events) {
+            if (
+              !log_event.decoded ||
+              !log_event.decoded.params ||
+              !(log_event.decoded.params.length >= 2)
+            ) {
+              continue;
+            }
 
-          let log_event = item.log_events[0];
+            let fromAddr = log_event.decoded.params[0].value;
+            let toAddr = log_event.decoded.params[1].value;
+            let collectionName = log_event.sender_name;
+            let collectionTicker = log_event.sender_contract_ticker_symbol;
+            let collectionAddress = log_event.sender_address;
+            let operation = log_event.decoded.name;
 
-          if (
-            !log_event.decoded ||
-            !log_event.decoded.params ||
-            !(log_event.decoded.params.length >= 2)
-          ) {
-            continue;
-          }
-
-          let fromAddr = log_event.decoded.params[0].value;
-          let toAddr = log_event.decoded.params[1].value;
-          let collectionName = log_event.sender_name;
-          let collectionTicker = log_event.sender_contract_ticker_symbol;
-          let collectionAddress = log_event.sender_address;
-          let operation = log_event.decoded.name;
-
-          if (
-            fromAddr === this.BLACK_HOLE_ADDRESS &&
-            operation === "Transfer"
-          ) {
-            const itemFromMap = mintCount.get(collectionAddress);
-            if (!itemFromMap) {
-              mintCount.set(collectionAddress, {
-                tokenIds: [""],
-                collectionName: collectionName || collectionTicker,
-              });
-            } else {
-              itemFromMap.tokenIds.push("");
+            if (
+              fromAddr === this.BLACK_HOLE_ADDRESS &&
+              operation === "Transfer"
+            ) {
+              const itemFromMap = mintCount.get(collectionAddress);
+              if (!itemFromMap) {
+                mintCount.set(collectionAddress, {
+                  tokenIds: [""],
+                  collectionName: collectionName || collectionTicker,
+                });
+              } else {
+                itemFromMap.tokenIds.push("");
+              }
             }
           }
         } else {
