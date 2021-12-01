@@ -74,6 +74,7 @@ class CovalentClient implements EthApiClient {
 
             if (
               fromAddr === this.BLACK_HOLE_ADDRESS &&
+              toAddr === apiResponse.data.address &&
               operation === "Transfer"
             ) {
               const itemFromMap = mintCount.get(collectionAddress);
