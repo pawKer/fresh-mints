@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { ServerSettings } from "./models";
+import { ServerSettings } from "./db-models/models";
 import { DatabaseRepository, ServerDataDTO, MongoResult } from "../@types/bot";
 
 class MongoDb implements DatabaseRepository {
   db: mongoose.Connection;
   constructor(uri: string) {
-    mongoose.connect(uri);
+    mongoose.connect(uri, { keepAlive: true });
     this.db = mongoose.connection;
     this.db.on("error", console.error.bind(console, "connection error: "));
     this.db.once("open", function () {

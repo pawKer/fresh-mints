@@ -4,7 +4,8 @@ import {
   EthApiClient,
   MintCountObject,
 } from "../../@types/bot";
-import { isWithinMinutes } from "../utils";
+import { isWithinMinutes } from "../utils/utils";
+import BotConstants from "../utils/constants";
 
 interface CovalentParams {
   pageNumber: number;
@@ -17,7 +18,6 @@ class CovalentClient implements EthApiClient {
     pageNumber: 0,
     pageSize: 25,
   };
-  BLACK_HOLE_ADDRESS: string = "0x0000000000000000000000000000000000000000";
   public API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
@@ -73,7 +73,7 @@ class CovalentClient implements EthApiClient {
             let operation = log_event.decoded.name;
 
             if (
-              fromAddr === this.BLACK_HOLE_ADDRESS &&
+              fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
               toAddr === apiResponse.data.address &&
               operation === "Transfer"
             ) {

@@ -9,6 +9,8 @@ import { MintCountObject } from "./MintCountObject";
 import { EthApiClient } from "./EthApiClient";
 import { CovalentApiResult } from "./CovalentApiResult";
 import { WalletCacheItem } from "./WalletCacheItem";
+import { Command } from "./Command";
+import { DiscordEvent } from "./DiscordEvent";
 
 export {
   DatabaseRepository,
@@ -22,4 +24,6 @@ export {
   EthApiClient,
   CovalentApiResult,
   WalletCacheItem,
+  Command,
+  DiscordEvent,
 };

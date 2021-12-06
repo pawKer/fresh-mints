@@ -1,4 +1,5 @@
 import { MessageEmbed } from "discord.js";
+
 const getErrorEmbed = (
   name: string,
   address: string,
@@ -34,7 +35,7 @@ const getFollowingInfoEmbed = (count: number): MessageEmbed => {
 const getNoUpdatesEmbed = (minutes: number): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#FFFF00")
-    .setTitle(`No updates in the last ${minutes} minutes`)
+    .setTitle(`No updates in the last ${minutes} minutes - TEST BOT`)
     .setTimestamp();
 };
 
@@ -45,44 +46,44 @@ const getHelpEmbed = (): MessageEmbed => {
     .setDescription(`The following commands are available:`)
     .addFields(
       {
-        name: ".alertHere",
+        name: "/alert-channel",
         value: "Sets the current channel as the channel for the bot alerts.",
       },
       {
-        name: ".infoHere",
+        name: "/info-channel",
         value: "Sets the current channel as the channel for bot info.",
       },
       {
-        name: ".add `<address>` `<nickname>`",
+        name: "/add `<address>` `<nickname>`",
         value: "Adds new ETH address to watchlist. ",
       },
       {
-        name: ".remove `<address>`",
+        name: "/remove `<address>`",
         value: "Removes ETH address to watchlist.",
       },
       {
-        name: ".who",
+        name: "/who",
         value: "Shows the addresses the bot is currently tracking.",
       },
-      { name: ".toggle", value: "Starts/stops the scheduled messages." },
+      { name: "/toggle", value: "Starts/stops the scheduled messages." },
       {
-        name: ".setSchedule `<minutes>`",
+        name: "/set-schedule `<minutes>`",
         value:
           "Sets the interval at which the bot will check the addresses. Needs to be between 1 and 60 minutes.",
       },
       {
-        name: ".setAlertRole `@<role>`",
+        name: "/set-alert-role `@<role>`",
         value: "Sets a role that will be tagged when there is a new alert.",
       },
       {
-        name: ".clearAlertRole",
+        name: "/clear-alert-role",
         value: "Clears the alert role.",
       },
       {
-        name: ".info",
+        name: "/info",
         value: "Displays the current server configuration.",
       },
-      { name: ".help", value: "Get the list of all possible commands." }
+      { name: "/help", value: "Get the list of all possible commands." }
     )
     .setTimestamp();
 };
