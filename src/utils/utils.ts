@@ -10,9 +10,21 @@ const isWithinMinutes = (timestamp: string, mins: number): boolean => {
 
 const readCommands = async () => {
   const commands: any[] = [];
-  const res = glob.sync(`**/*.ts`, { cwd: `${process.cwd()}/src/commands/` });
+  let res;
+  if (process.env.NODE_ENV === "prod") {
+    res = glob.sync(`**/*.js`, {
+      cwd: `${process.cwd()}/commands/`,
+    });
+  } else {
+    res = res = glob.sync(`**/*.ts`, {
+      cwd: `${process.cwd()}/src/commands/`,
+    });
+  }
+
   for (const file of res) {
-    const command: Command = (await import(`../commands/${file}`))
+    const fileNoExt = file.substring(0, file.length - 3);
+
+    const command: Command = (await import(`../commands/${fileNoExt}`))
       .default as Command;
     // Set a new item in the Collection
     commands.push(command);
@@ -22,9 +34,19 @@ const readCommands = async () => {
 
 const readEvents = async () => {
   const events: any[] = [];
-  const res = glob.sync(`**/*.ts`, { cwd: `${process.cwd()}/src/events/` });
+  let res;
+  if (process.env.NODE_ENV === "prod") {
+    res = glob.sync(`**/*.js`, {
+      cwd: `${process.cwd()}/events/`,
+    });
+  } else {
+    res = res = glob.sync(`**/*.ts`, {
+      cwd: `${process.cwd()}/src/events/`,
+    });
+  }
   for (const file of res) {
-    const command: Command = (await import(`../events/${file}`))
+    const fileNoExt = file.substring(0, file.length - 3);
+    const command: Command = (await import(`../events/${fileNoExt}`))
       .default as Command;
     // Set a new item in the Collection
     events.push(command);
