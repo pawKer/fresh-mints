@@ -24,7 +24,9 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
     alertRole: String,
   });
 
-const ServerSettings: mongoose.Model<ServerDataDTO> =
-  mongoose.model<MongoResult>("server-settings", ServerSettingsSchema);
+const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(
+  "server-settings",
+  ServerSettingsSchema
+);
 
 export { ServerSettings };
