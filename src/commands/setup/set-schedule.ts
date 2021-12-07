@@ -4,6 +4,9 @@ import { Command } from "../../../@types/bot";
 // Had to change module to commmonjs because of this import
 import { default as cronTime } from "cron-time-generator";
 import cronstrue from "cronstrue";
+import BotConstants from "../../utils/constants";
+import { getMintedForFollowingAddresses } from "../../logic";
+import cron from "cron";
 
 const setScheduleCommand: Command = {
   data: new SlashCommandBuilder()
@@ -34,6 +37,17 @@ const setScheduleCommand: Command = {
       minutesToCheck: cacheItem.minutesToCheck,
       schedule: cacheItem.schedule,
     });
+
+    if (cacheItem.scheduledMessage) {
+      cacheItem.scheduledMessage.stop();
+    }
+    cacheItem.scheduledMessage = new cron.CronJob(
+      cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
+      async () => {
+        getMintedForFollowingAddresses(client, guild.id);
+      }
+    );
+    cacheItem.scheduledMessage.start();
     await interaction.reply(
       `Set schedule to \`${cronstrue.toString(cacheItem.schedule)}\`.`
     );

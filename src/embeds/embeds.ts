@@ -35,7 +35,7 @@ const getFollowingInfoEmbed = (count: number): MessageEmbed => {
 const getNoUpdatesEmbed = (minutes: number): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#FFFF00")
-    .setTitle(`No updates in the last ${minutes} minutes - TEST BOT`)
+    .setTitle(`No updates in the last ${minutes} minutes`)
     .setTimestamp();
 };
 
