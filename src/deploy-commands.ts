@@ -7,7 +7,7 @@ const rest = new REST({ version: "9" }).setToken(
   process.env.DISCORD_API_SECRET!
 );
 
-const updateCommands = async (commands: any[]) => {
+const updateCommands = async (commands: string[]): Promise<void> => {
   try {
     console.log("Started refreshing application (/) commands.");
 
@@ -30,6 +30,6 @@ const updateCommands = async (commands: any[]) => {
 };
 
 readCommands().then(async (commands) => {
-  let deployCmds = commands.map((cmd) => cmd.data.toJSON());
+  let deployCmds: string[] = commands.map((cmd) => cmd.data.toJSON());
   await updateCommands(deployCmds);
 });

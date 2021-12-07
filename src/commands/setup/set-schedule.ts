@@ -17,14 +17,17 @@ const setScheduleCommand: Command = {
           "The frequency of the checks in minutes. Must be between 1 and 60."
         )
     ),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const minutes = interaction.options.getInteger("minutes");
+    if (!minutes) return;
     if (minutes < 1 || minutes > 60) {
       await interaction.reply("Argument needs to be between 1 and 60 minutes.");
       return;
     }
     const cacheItem = client.serverCache.get(guild.id);
+    if (!cacheItem) return;
     cacheItem.minutesToCheck = minutes + 1;
     cacheItem.schedule = cronTime.every(minutes).minutes();
     client.db.save(guild.id, {

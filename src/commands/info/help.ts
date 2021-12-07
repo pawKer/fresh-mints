@@ -6,7 +6,7 @@ const helpCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("help")
     .setDescription("Get a list of all the bot's commands."),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
     await interaction.reply({ embeds: [getHelpEmbed()] });
   },
 };

@@ -1,6 +1,11 @@
 import axios from "axios";
 import { Guild, MessageEmbed, TextChannel } from "discord.js";
-import { MintCountObject, MongoResult, ServerData } from "../@types/bot";
+import {
+  DiscordClient,
+  MintCountObject,
+  MongoResult,
+  ServerData,
+} from "../@types/bot";
 import {
   getBasicMintInfoEmbed,
   getErrorEmbed,
@@ -40,7 +45,7 @@ const addFieldsToEmbed = (
 };
 
 const getMintedForFollowingAddresses = async (
-  client: any,
+  client: DiscordClient,
   serverId: string
 ): Promise<void> => {
   let cacheResult: ServerData | undefined = client.serverCache.get(serverId);
@@ -123,7 +128,7 @@ const getMintedForFollowingAddresses = async (
   }
 };
 
-const restartAllRunningCrons = async (client: any): Promise<void> => {
+const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
   const runningCrons: MongoResult[] = await client.db.findAllStartedJobs();
 
   runningCrons.forEach((dbData) => {

@@ -1,12 +1,12 @@
-import { Guild, GuildMember } from "discord.js";
-import { MongoResult, ServerData } from "../../@types/bot";
+import { Guild, GuildMember, Interaction } from "discord.js";
+import { DiscordClient, MongoResult, ServerData } from "../../@types/bot";
 import BotConstants from "../utils/constants";
 
 const interactionCreateEvent = {
   name: "interactionCreate",
-  async execute(interaction: any) {
+  async execute(interaction: Interaction) {
     if (!interaction.isCommand()) return;
-    const client = interaction.client;
+    const client = interaction.client as DiscordClient;
     const command = client.commands.get(interaction.commandName);
 
     if (!command) return;
@@ -17,7 +17,7 @@ const interactionCreateEvent = {
     if (!guild) return;
 
     //TODO: Might be able to remove this
-    if (interaction.channel.type !== "GUILD_TEXT") {
+    if (interaction.channel && interaction.channel.type !== "GUILD_TEXT") {
       return;
     }
 

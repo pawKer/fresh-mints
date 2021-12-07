@@ -12,9 +12,11 @@ const setMinutesCommand: Command = {
     .addIntegerOption((option) =>
       option.setRequired(true).setName("minutes").setDescription("Minutes")
     ),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
+
     const guild: Guild = interaction.guild;
-    const member = interaction.interaction.member as GuildMember;
+    const member = interaction.member as GuildMember;
     const minutes = interaction.options.getInteger("minutes");
     if (member.id !== BotConstants.OWNER_ID) {
       await interaction.reply(
@@ -24,6 +26,8 @@ const setMinutesCommand: Command = {
     }
 
     const cacheItem = client.serverCache.get(guild.id);
+
+    if (!minutes || !cacheItem) return;
 
     if (minutes < 1) {
       await interaction.reply("Second argument must >= 1.");

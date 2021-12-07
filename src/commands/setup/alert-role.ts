@@ -12,10 +12,12 @@ const alertRoleCommand: Command = {
         .setName("role")
         .setDescription("A role that will be tagged when alerts are sent.")
     ),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
-    cacheItem.alertRole = interaction.options.getRole("role").id;
+    if (!cacheItem) return;
+    cacheItem.alertRole = interaction.options.getRole("role")?.id;
     client.db.save(guild.id, {
       alertRole: cacheItem.alertRole,
     });

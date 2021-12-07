@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { Guild, GuildMember } from "discord.js";
+import { GuildMember } from "discord.js";
 import { Command } from "../../../@types/bot";
 import BotConstants from "../../utils/constants";
 import CovalentClient from "../../api-clients/covalent-client";
@@ -9,8 +9,7 @@ const changeApiClientCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("change-api-client")
     .setDescription("Change API client."),
-  async execute(client: any, interaction: any) {
-    const guild: Guild = interaction.guild;
+  async execute(client, interaction) {
     const member = interaction.member as GuildMember;
     if (member.id !== BotConstants.OWNER_ID) {
       await interaction.reply(

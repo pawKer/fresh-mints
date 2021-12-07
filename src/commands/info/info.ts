@@ -8,8 +8,10 @@ const serverInfoCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("info")
     .setDescription("Get the current server settings."),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const cacheItem = client.serverCache.get(interaction.guild.id);
+    if (!cacheItem) return;
     await interaction.reply({
       embeds: [
         getInfoEmbed(

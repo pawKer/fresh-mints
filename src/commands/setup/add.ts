@@ -19,12 +19,14 @@ const addCommand: Command = {
         .setName("nickname")
         .setDescription("A nickname for the address.")
     ),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const eth_address = interaction.options.getString("eth-wallet-address");
     const nickname = interaction.options.getString("nickname");
 
     const cacheItem = client.serverCache.get(guild.id);
+    if (!cacheItem || !eth_address || !nickname) return;
 
     if (ethereum_address.isAddress(eth_address)) {
       if (!cacheItem.addressMap) {

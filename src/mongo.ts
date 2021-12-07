@@ -32,9 +32,9 @@ class MongoDb implements DatabaseRepository {
   async find(serverId: string): Promise<MongoResult | null> {
     let res: MongoResult | null;
     try {
-      res = await ServerSettings.findOne({
+      res = (await ServerSettings.findOne({
         _id: serverId,
-      });
+      })) as MongoResult;
       console.log("Fetched data from DB");
       return res;
     } catch (error) {
@@ -46,7 +46,9 @@ class MongoDb implements DatabaseRepository {
   async findAllStartedJobs(): Promise<MongoResult[]> {
     let res: MongoResult[];
     try {
-      res = await ServerSettings.find({ areScheduledMessagesOn: true });
+      res = (await ServerSettings.find({
+        areScheduledMessagesOn: true,
+      })) as MongoResult[];
       return res;
     } catch (error) {
       console.error(error);

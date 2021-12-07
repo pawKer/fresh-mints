@@ -14,11 +14,14 @@ const alertCommand: Command = {
         .setName("channel")
         .setDescription("A channel where the alerts from the bot will be sent")
     ),
-  async execute(client: any, interaction: any) {
-    const guild: Guild | null = interaction.guild;
-    if (!guild) return;
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
+    const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
-    cacheItem.alertChannelId = interaction.options.getChannel("channel").id;
+
+    if (!cacheItem) return;
+
+    cacheItem.alertChannelId = interaction.options.getChannel("channel")?.id;
     client.db.save(guild.id, {
       alertChannelId: cacheItem.alertChannelId,
     });

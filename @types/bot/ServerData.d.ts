@@ -1,12 +1,6 @@
 import { CronJob } from "cron";
+import { ServerDataDTO } from ".";
 
-export interface ServerData {
-  alertChannelId?: string;
-  infoChannelId?: string;
-  areScheduledMessagesOn?: boolean;
+export interface ServerData extends ServerDataDTO {
   scheduledMessage?: CronJob;
-  addressMap?: Map<string, string>;
-  minutesToCheck?: number;
-  schedule?: string;
-  alertRole?: string;
 }

@@ -16,10 +16,13 @@ const infoCommand: Command = {
           "A channel where the info messages (logs) from the bot will be sent"
         )
     ),
-  async execute(client: any, interaction: any) {
-    const guild: Guild | null = interaction.guild;
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
+    const guild: Guild = interaction.guild;
     if (!guild) return;
     const cacheItem = client.serverCache.get(guild.id);
+    if (!cacheItem) return;
+
     cacheItem.infoChannelId = interaction.channelId;
     client.db.save(guild.id, {
       infoChannelId: cacheItem.infoChannelId,

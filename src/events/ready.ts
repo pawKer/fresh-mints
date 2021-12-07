@@ -1,12 +1,12 @@
 import { restartAllRunningCrons } from "../logic";
 import cron from "cron";
 import { logApiRequests } from "../utils/utils";
-import { Command } from "../../@types/bot";
+import { Command, DiscordClient } from "../../@types/bot";
 
 const readyEvent = {
   name: "ready",
   once: true,
-  async execute(client: any) {
+  async execute(client: DiscordClient) {
     console.log(`Online as ${client?.user?.tag}`);
     client?.user?.setActivity("Candy Crush");
     await restartAllRunningCrons(client);

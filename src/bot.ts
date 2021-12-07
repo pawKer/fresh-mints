@@ -6,6 +6,9 @@ import {
   ServerData,
   EthApiClient,
   WalletCacheItem,
+  Command,
+  DiscordEvent,
+  DiscordClient,
 } from "../@types/bot";
 import EtherscanClient from "./api-clients/etherscan-client";
 import CovalentClient from "./api-clients/covalent-client";
@@ -15,26 +18,30 @@ dotenv.config();
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
 const mongo: DatabaseRepository = new MongoDb(MONGO_URI);
 
-let apiClient: EthApiClient = new CovalentClient();
+const apiClient: EthApiClient = new CovalentClient();
 
 const serverCache: Collection<string, ServerData> = new Collection();
 const requestCache: Collection<string, WalletCacheItem> = new Collection();
 
-const client: any = new Client({
+let client: DiscordClient;
+
+const tempClient: any = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
 
-client.commands = new Collection();
-client.events = new Collection();
-client.serverCache = serverCache;
-client.requestCache = requestCache;
-client.db = mongo;
-client.apiClient = apiClient;
-client.useEtherscan = false;
+tempClient.commands = new Collection<string, Command>();
+tempClient.events = new Collection<string, DiscordEvent>();
+tempClient.serverCache = serverCache;
+tempClient.requestCache = requestCache;
+tempClient.db = mongo;
+tempClient.apiClient = apiClient;
+tempClient.useEtherscan = false;
+
+client = tempClient;
 
 readCommands().then((commands) => {
   commands.forEach((cmd) => {
-    client.commands.set(cmd.data.name, cmd);
+    if (client && client.commands) client.commands.set(cmd.data.name, cmd);
   });
 });
 

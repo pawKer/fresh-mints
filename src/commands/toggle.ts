@@ -9,10 +9,15 @@ const toggleCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("toggle")
     .setDescription("Toggle the scheduled messages."),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
-    if (!cacheItem.addressMap || cacheItem.addressMap.size === 0) {
+    if (
+      !cacheItem ||
+      !cacheItem.addressMap ||
+      cacheItem.addressMap.size === 0
+    ) {
       await interaction.reply(
         "You are currently not following any ETH addresses. Use the `.add` command to add some."
       );

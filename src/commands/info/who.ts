@@ -24,9 +24,13 @@ const whoCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("who")
     .setDescription("Shows the addresses the bot is currently tracking."),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
+
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
+    if (!cacheItem) return;
+
     await interaction.reply({
       embeds: [getFollowingListAsMessage(cacheItem)],
     });

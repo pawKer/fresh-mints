@@ -6,9 +6,13 @@ const clearAlertRoleCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("clear-alert-role")
     .setDescription("Clear the channel for alerts."),
-  async execute(client: any, interaction: any) {
+  async execute(client, interaction) {
+    if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
+
+    if (!cacheItem) return;
+
     cacheItem.alertRole = null;
     client.db.save(guild.id, {
       alertRole: cacheItem.alertRole,

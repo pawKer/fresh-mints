@@ -1,4 +1,4 @@
-import { Command } from "../../@types/bot";
+import { Command, DiscordEvent, EthApiClient } from "../../@types/bot";
 import glob from "glob";
 
 const isWithinMinutes = (timestamp: string, mins: number): boolean => {
@@ -8,9 +8,9 @@ const isWithinMinutes = (timestamp: string, mins: number): boolean => {
   return Date.now() - parseInt(timestamp) <= mins * 60 * 1000;
 };
 
-const readCommands = async () => {
-  const commands: any[] = [];
-  let res;
+const readCommands = async (): Promise<Command[]> => {
+  const commands: Command[] = [];
+  let res: string[];
   if (process.env.NODE_ENV === "prod") {
     res = glob.sync(`**/*.js`, {
       cwd: `${process.cwd()}/commands/`,
@@ -32,9 +32,9 @@ const readCommands = async () => {
   return commands;
 };
 
-const readEvents = async () => {
-  const events: any[] = [];
-  let res;
+const readEvents = async (): Promise<DiscordEvent[]> => {
+  const events: DiscordEvent[] = [];
+  let res: string[];
   if (process.env.NODE_ENV === "prod") {
     res = glob.sync(`**/*.js`, {
       cwd: `${process.cwd()}/events/`,
@@ -46,15 +46,15 @@ const readEvents = async () => {
   }
   for (const file of res) {
     const fileNoExt = file.substring(0, file.length - 3);
-    const command: Command = (await import(`../events/${fileNoExt}`))
-      .default as Command;
+    const event: DiscordEvent = (await import(`../events/${fileNoExt}`))
+      .default as DiscordEvent;
     // Set a new item in the Collection
-    events.push(command);
+    events.push(event);
   }
   return events;
 };
 
-const logApiRequests = (apiClient: any) => {
+const logApiRequests = (apiClient: EthApiClient): void => {
   console.log("API REQUESTS in the last hour", apiClient.API_REQUEST_COUNT);
   apiClient.API_REQUEST_COUNT = 0;
 };

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MongoResult } from "../../@types/bot";
+import { MongoResult, ServerDataDTO } from "../../@types/bot";
 
 const reqString: mongoose.SchemaDefinitionProperty = {
   type: String,
@@ -24,9 +24,7 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
     alertRole: String,
   });
 
-const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(
-  "server-settings",
-  ServerSettingsSchema
-);
+const ServerSettings: mongoose.Model<ServerDataDTO> =
+  mongoose.model<MongoResult>("server-settings", ServerSettingsSchema);
 
 export { ServerSettings };

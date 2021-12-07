@@ -11,6 +11,7 @@ import { CovalentApiResult } from "./CovalentApiResult";
 import { WalletCacheItem } from "./WalletCacheItem";
 import { Command } from "./Command";
 import { DiscordEvent } from "./DiscordEvent";
+import { DiscordClient } from "./DiscordClient";
 
 export {
   DatabaseRepository,
@@ -26,4 +27,5 @@ export {
   WalletCacheItem,
   Command,
   DiscordEvent,
+  DiscordClient,
 };

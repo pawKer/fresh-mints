@@ -92,7 +92,7 @@ const getInfoEmbed = (
   alertChannelId: string | undefined,
   infoChannelId: string | undefined,
   schedule: string,
-  alertRole: string | undefined
+  alertRole: string | undefined | null
 ): MessageEmbed => {
   let infoEmbed = new MessageEmbed()
     .setColor("#0099ff")
