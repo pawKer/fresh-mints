@@ -39,7 +39,7 @@ const setMinutesCommand: Command = {
     }
 
     cacheItem.minutesToCheck = minutes;
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       minutesToCheck: cacheItem.minutesToCheck,
     });
     await interaction.reply(`Set minutes to ${cacheItem.minutesToCheck}.`);

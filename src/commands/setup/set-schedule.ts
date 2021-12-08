@@ -36,7 +36,7 @@ const setScheduleCommand: Command = {
     if (!cacheItem) return;
     cacheItem.minutesToCheck = minutes + 1;
     cacheItem.schedule = cronTime.every(minutes).minutes();
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       minutesToCheck: cacheItem.minutesToCheck,
       schedule: cacheItem.schedule,
     });

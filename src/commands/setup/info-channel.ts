@@ -24,7 +24,7 @@ const infoCommand: Command = {
     if (!cacheItem) return;
 
     cacheItem.infoChannelId = interaction.channelId;
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       infoChannelId: cacheItem.infoChannelId,
     });
     await interaction.reply(

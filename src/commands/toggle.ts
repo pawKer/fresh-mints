@@ -27,13 +27,13 @@ const toggleCommand: Command = {
     }
     if (cacheItem.areScheduledMessagesOn) {
       cacheItem.areScheduledMessagesOn = false;
-      client.db.save(guild.id, { areScheduledMessagesOn: false });
+      await client.db.save(guild.id, { areScheduledMessagesOn: false });
       if (cacheItem.scheduledMessage) cacheItem.scheduledMessage.stop();
       await interaction.reply("Turned scheduled messages off.");
       console.log(`[${guild.id}] - Turned scheduled messages off.`);
     } else {
       cacheItem.areScheduledMessagesOn = true;
-      client.db.save(guild.id, { areScheduledMessagesOn: true });
+      await client.db.save(guild.id, { areScheduledMessagesOn: true });
       if (!cacheItem.scheduledMessage) {
         cacheItem.scheduledMessage = new cron.CronJob(
           cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,

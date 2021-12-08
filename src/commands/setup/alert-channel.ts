@@ -22,7 +22,7 @@ const alertCommand: Command = {
     if (!cacheItem) return;
 
     cacheItem.alertChannelId = interaction.options.getChannel("channel")?.id;
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       alertChannelId: cacheItem.alertChannelId,
     });
     await interaction.reply(

@@ -131,12 +131,12 @@ const getMintedForFollowingAddresses = async (
 const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
   const runningCrons: MongoResult[] = await client.db.findAllStartedJobs();
 
-  runningCrons.forEach((dbData) => {
+  for(const dbData of runningCrons) {
     const serverData: ServerData = dbData;
     if (!serverData.minutesToCheck || !serverData.schedule) {
       serverData.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
       serverData.schedule = BotConstants.DEFAULT_SCHEDULE;
-      client.db.save(dbData._id, {
+      await client.db.save(dbData._id, {
         minutesToCheck: serverData.minutesToCheck,
         schedule: serverData.schedule,
       });
@@ -150,7 +150,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
       }
     );
     cacheItem!.scheduledMessage.start();
-  });
+  };
   if (runningCrons.length > 0)
     client?.user?.setActivity("the specified wallets", { type: "WATCHING" });
   console.log(`Restarted ${runningCrons.length} crons.`);

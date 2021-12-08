@@ -14,7 +14,7 @@ const clearAlertRoleCommand: Command = {
     if (!cacheItem) return;
 
     cacheItem.alertRole = null;
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       alertRole: cacheItem.alertRole,
     });
     await interaction.reply(`Alert role has been reset.`);

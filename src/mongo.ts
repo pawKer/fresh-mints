@@ -25,7 +25,7 @@ class MongoDb implements DatabaseRepository {
       );
       console.log(`[${serverId}] - Saved server settings!`);
     } catch (error) {
-      console.error(error);
+      console.error(`${serverId}`, error);
     }
   }
 
@@ -38,7 +38,7 @@ class MongoDb implements DatabaseRepository {
       console.log(`[${serverId}] - Fetched data from DB`);
       return res;
     } catch (error) {
-      console.error(error);
+      console.error(`${serverId}`, error);
     }
     return Promise.reject();
   }

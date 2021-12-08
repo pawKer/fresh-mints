@@ -40,7 +40,7 @@ const interactionCreateEvent = {
         if (!data.minutesToCheck || !data.schedule) {
           data.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
           data.schedule = BotConstants.DEFAULT_SCHEDULE;
-          client.db.save(guild.id, {
+          await client.db.save(guild.id, {
             minutesToCheck: data.minutesToCheck,
             schedule: data.schedule,
           });

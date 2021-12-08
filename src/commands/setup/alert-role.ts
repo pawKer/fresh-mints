@@ -18,7 +18,7 @@ const alertRoleCommand: Command = {
     const cacheItem = client.serverCache.get(guild.id);
     if (!cacheItem) return;
     cacheItem.alertRole = interaction.options.getRole("role")?.id;
-    client.db.save(guild.id, {
+    await client.db.save(guild.id, {
       alertRole: cacheItem.alertRole,
     });
     await interaction.reply(`Alert role set to: <@&${cacheItem.alertRole}>.`);

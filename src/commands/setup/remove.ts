@@ -33,7 +33,7 @@ const removeCommand: Command = {
     }
     if (eth_address && cacheItem.addressMap.get(eth_address)) {
       cacheItem.addressMap.delete(eth_address);
-      client.db.save(guild.id, { addressMap: cacheItem.addressMap });
+      await client.db.save(guild.id, { addressMap: cacheItem.addressMap });
       await interaction.reply("Address removed from watchlist.");
     } else {
       await interaction.reply({

@@ -4,5 +4,5 @@ export interface DatabaseRepository {
   db: mongoose.Connection;
   find(serverId: string): Promise<MongoResult | null>;
   findAllStartedJobs(): Promise<MongoResult[]>;
-  save(serverId: string, data: ServerDataDTO): void;
+  save(serverId: string, data: ServerDataDTO): Promise<void>;
 }
