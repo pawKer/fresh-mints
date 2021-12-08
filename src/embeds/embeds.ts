@@ -27,7 +27,7 @@ const getBasicMintInfoEmbed = (name: string, address: string): MessageEmbed => {
 const getFollowingInfoEmbed = (count: number): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
-    .setTitle("Minting updates")
+    .setTitle("Following list")
     .setDescription(`Currently watching ${count} addresses:`)
     .setTimestamp();
 };
