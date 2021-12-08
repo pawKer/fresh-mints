@@ -10,6 +10,7 @@ const guildCreateEvent: DiscordEvent = {
     await client.db.save(guild.id, {
       minutesToCheck: BotConstants.DEFAULT_MINUTES_TO_CHECK,
       schedule: BotConstants.DEFAULT_SCHEDULE,
+      guildName: guild.name,
     });
   },
 };

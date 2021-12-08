@@ -6,4 +6,5 @@ export interface ServerDataDTO {
   minutesToCheck?: number;
   schedule?: string;
   alertRole?: string | null;
+  guildName?: string;
 }
