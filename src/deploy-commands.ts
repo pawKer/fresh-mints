@@ -1,6 +1,7 @@
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import dotenv from "dotenv";
+import BotConstants from "./utils/constants";
 import { readCommands } from "./utils/utils";
 dotenv.config();
 const rest = new REST({ version: "9" }).setToken(
@@ -13,8 +14,8 @@ const updateCommands = async (commands: string[]): Promise<void> => {
 
     await rest.put(
       Routes.applicationGuildCommands(
-        "915621429079330868",
-        "912779325235920936"
+        BotConstants.TEST_BOT_ID,
+        BotConstants.TEST_GUILD_ID
       ),
       {
         body: commands,
