@@ -36,7 +36,10 @@ const addCommand: Command = {
       client.db.save(guild.id, { addressMap: cacheItem.addressMap });
       await interaction.reply("New address saved.");
     } else {
-      await interaction.reply("Provided ETH address is not valid.");
+      await interaction.reply({
+        content: "Provided ETH address is not valid.",
+        ephemeral: true,
+      });
     }
   },
 };

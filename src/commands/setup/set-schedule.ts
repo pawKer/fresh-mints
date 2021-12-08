@@ -26,7 +26,10 @@ const setScheduleCommand: Command = {
     const minutes = interaction.options.getInteger("minutes");
     if (!minutes) return;
     if (minutes < 1 || minutes > 60) {
-      await interaction.reply("Argument needs to be between 1 and 60 minutes.");
+      await interaction.reply({
+        content: "Argument needs to be between 1 and 60 minutes.",
+        ephemeral: true,
+      });
       return;
     }
     const cacheItem = client.serverCache.get(guild.id);

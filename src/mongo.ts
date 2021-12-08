@@ -23,7 +23,7 @@ class MongoDb implements DatabaseRepository {
           upsert: true,
         }
       );
-      console.log("Saved server settings!");
+      console.log(`[${serverId}] - Saved server settings!`);
     } catch (error) {
       console.error(error);
     }
@@ -35,7 +35,7 @@ class MongoDb implements DatabaseRepository {
       res = (await ServerSettings.findOne({
         _id: serverId,
       })) as MongoResult;
-      console.log("Fetched data from DB");
+      console.log(`[${serverId}] - Fetched data from DB`);
       return res;
     } catch (error) {
       console.error(error);

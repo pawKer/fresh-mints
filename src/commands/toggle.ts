@@ -18,9 +18,11 @@ const toggleCommand: Command = {
       !cacheItem.addressMap ||
       cacheItem.addressMap.size === 0
     ) {
-      await interaction.reply(
-        "You are currently not following any ETH addresses. Use the `.add` command to add some."
-      );
+      await interaction.reply({
+        content:
+          "You are currently not following any ETH addresses. Use the `/add` command to add some.",
+        ephemeral: true,
+      });
       return;
     }
     if (cacheItem.areScheduledMessagesOn) {
@@ -28,7 +30,7 @@ const toggleCommand: Command = {
       client.db.save(guild.id, { areScheduledMessagesOn: false });
       if (cacheItem.scheduledMessage) cacheItem.scheduledMessage.stop();
       await interaction.reply("Turned scheduled messages off.");
-      console.log("Turned scheduled messages off.");
+      console.log(`[${guild.id}] - Turned scheduled messages off.`);
     } else {
       cacheItem.areScheduledMessagesOn = true;
       client.db.save(guild.id, { areScheduledMessagesOn: true });
@@ -42,7 +44,7 @@ const toggleCommand: Command = {
       }
       cacheItem.scheduledMessage.start();
       await interaction.reply("Turned scheduled messages on.");
-      console.log("Turned scheduled messages on.");
+      console.log(`[${guild.id}] - Turned scheduled messages on.`);
     }
   },
 };

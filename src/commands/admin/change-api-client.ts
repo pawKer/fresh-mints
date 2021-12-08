@@ -12,9 +12,10 @@ const changeApiClientCommand: Command = {
   async execute(client, interaction) {
     const member = interaction.member as GuildMember;
     if (member.id !== BotConstants.OWNER_ID) {
-      await interaction.reply(
-        `This command is only available for the bot owner.`
-      );
+      await interaction.reply({
+        content: `This command is only available for the bot owner.`,
+        ephemeral: true,
+      });
       return;
     }
 
@@ -25,7 +26,10 @@ const changeApiClientCommand: Command = {
       client.apiClient = new EtherscanClient();
       client.useEtherscan = true;
     }
-    await interaction.reply(`Changed API client to ${client.apiClient.NAME}`);
+    await interaction.reply({
+      content: `Changed API client to ${client.apiClient.NAME}`,
+      ephemeral: true,
+    });
   },
 };
 export default changeApiClientCommand;

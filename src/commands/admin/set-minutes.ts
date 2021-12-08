@@ -19,9 +19,10 @@ const setMinutesCommand: Command = {
     const member = interaction.member as GuildMember;
     const minutes = interaction.options.getInteger("minutes");
     if (member.id !== BotConstants.OWNER_ID) {
-      await interaction.reply(
-        `This command is only available for the bot owner.`
-      );
+      await interaction.reply({
+        content: `This command is only available for the bot owner.`,
+        ephemeral: true,
+      });
       return;
     }
 
@@ -30,7 +31,10 @@ const setMinutesCommand: Command = {
     if (!minutes || !cacheItem) return;
 
     if (minutes < 1) {
-      await interaction.reply("Second argument must >= 1.");
+      await interaction.reply({
+        content: "Second argument must >= 1.",
+        ephemeral: true,
+      });
       return;
     }
 

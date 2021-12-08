@@ -20,7 +20,8 @@ const serverInfoCommand: Command = {
           cronstrue.toString(
             cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE
           ),
-          cacheItem.alertRole
+          cacheItem.alertRole,
+          cacheItem.areScheduledMessagesOn
         ),
       ],
     });

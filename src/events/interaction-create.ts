@@ -22,7 +22,10 @@ const interactionCreateEvent = {
     }
 
     if (!member.permissions.has("ADMINISTRATOR")) {
-      interaction.reply("You do not have permission to run this command.");
+      await interaction.reply({
+        content: "You do not have permission to run this command.",
+        ephemeral: true,
+      });
       return;
     }
 
@@ -46,13 +49,16 @@ const interactionCreateEvent = {
       client.serverCache.set(guild.id, data);
     }
 
-    if (!data.alertChannelId && interaction.commandName !== "help") {
-      interaction.reply(
-        "You need to set a channel for the alerts by using the `.alertHere` command."
-      );
-      interaction.reply(
-        "You can also set a channel for other info using the `.infoHere` command"
-      );
+    if (
+      !data.alertChannelId &&
+      interaction.commandName !== "help" &&
+      interaction.commandName !== "alert-channel"
+    ) {
+      await interaction.reply({
+        content:
+          "You need to set a channel for the alerts by using the `/alert-channel` command.\nYou can also set a channel for other info (logs) using the `/info-channel` command.",
+        ephemeral: true,
+      });
       return;
     }
 

@@ -92,13 +92,18 @@ const getInfoEmbed = (
   alertChannelId: string | undefined,
   infoChannelId: string | undefined,
   schedule: string,
-  alertRole: string | undefined | null
+  alertRole: string | undefined | null,
+  messagesStatus: boolean | undefined
 ): MessageEmbed => {
   let infoEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Channel config info")
     .setDescription(`The following channels are being used for bot messages:`)
     .addFields(
+      {
+        name: "Scheduled messages status",
+        value: messagesStatus ? "ON 🟢" : "OFF 🔴",
+      },
       {
         name: "Alert channel",
         value: `<#${alertChannelId}>`,

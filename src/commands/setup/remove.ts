@@ -24,9 +24,11 @@ const removeCommand: Command = {
       !cacheItem.addressMap ||
       cacheItem.addressMap.size === 0
     ) {
-      await interaction.reply(
-        "You are currently not following any ETH addresses. Use the `.add` command to add some."
-      );
+      await interaction.reply({
+        content:
+          "You are currently not following any ETH addresses. Use the `/add` command to add some.",
+        ephemeral: true,
+      });
       return;
     }
     if (eth_address && cacheItem.addressMap.get(eth_address)) {
@@ -34,7 +36,10 @@ const removeCommand: Command = {
       client.db.save(guild.id, { addressMap: cacheItem.addressMap });
       await interaction.reply("Address removed from watchlist.");
     } else {
-      await interaction.reply("Address provided was not found in watchlist.");
+      await interaction.reply({
+        content: "Address provided was not found in watchlist.",
+        ephemeral: true,
+      });
     }
   },
 };
