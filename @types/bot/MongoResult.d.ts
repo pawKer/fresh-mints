@@ -1,11 +1,6 @@
-export interface MongoResult {
+import { ServerDataDTO } from ".";
+
+export interface MongoResult extends ServerDataDTO {
   _id: string;
   __v: number;
-  alertChannelId?: string;
-  infoChannelId?: string;
-  areScheduledMessagesOn?: boolean;
-  addressMap?: Map<string, string>;
-  minutesToCheck?: number;
-  schedule?: string;
-  alertRole?: string;
 }

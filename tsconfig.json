@@ -12,7 +12,8 @@
         "node"
       ],
       "lib": [
-        "es6"
+        "es6",
+        "dom"
       ],
       "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,

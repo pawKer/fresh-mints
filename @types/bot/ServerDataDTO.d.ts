@@ -5,5 +5,5 @@ export interface ServerDataDTO {
   addressMap?: Map<string, string>;
   minutesToCheck?: number;
   schedule?: string;
-  alertRole?: string;
+  alertRole?: string | null;
 }

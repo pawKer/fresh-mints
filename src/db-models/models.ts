@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MongoResult } from "../@types/bot";
+import { MongoResult, ServerDataDTO } from "../../@types/bot";
 
 const reqString: mongoose.SchemaDefinitionProperty = {
   type: String,
