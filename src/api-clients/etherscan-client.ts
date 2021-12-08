@@ -6,8 +6,8 @@ import {
   MintCountObject,
   ResultTransaction,
 } from "../../@types/bot";
+import BotConstants from "../utils/constants";
 import { isWithinMinutes } from "../utils/utils";
-import constants from "../utils/constants";
 
 class EtherscanClient implements EthApiClient {
   NAME: string = "Etherscan";
@@ -56,7 +56,7 @@ class EtherscanClient implements EthApiClient {
     if (apiResponse) {
       for (let result of apiResponse) {
         if (isWithinMinutes(result["timeStamp"], minutesToCheck)) {
-          if (result["from"] === constants.BLACK_HOLE_ADDRESS) {
+          if (result["from"] === BotConstants.BLACK_HOLE_ADDRESS) {
             const itemFromMap = mintCount.get(result["contractAddress"]);
             if (!itemFromMap) {
               mintCount.set(result["contractAddress"], {

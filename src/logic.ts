@@ -61,7 +61,7 @@ const getMintedForFollowingAddresses = async (
   } = cacheResult;
 
   if (!alertChannelId || !addressMap || !minutesToCheck) {
-    console.error("GET_DATA", "Some fields were not populated.");
+    console.error(`[${serverId}] GET_DATA`, "Some fields were not populated.");
     return;
   }
 
@@ -103,7 +103,7 @@ const getMintedForFollowingAddresses = async (
           infoChannel.send({
             embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
           });
-        console.error("API_CLIENT_ERROR", message);
+        console.error(`[${serverId}] API_CLIENT_ERROR`, message);
         continue;
       }
     }
@@ -131,7 +131,7 @@ const getMintedForFollowingAddresses = async (
 const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
   const runningCrons: MongoResult[] = await client.db.findAllStartedJobs();
 
-  for(const dbData of runningCrons) {
+  for (const dbData of runningCrons) {
     const serverData: ServerData = dbData;
     if (!serverData.minutesToCheck || !serverData.schedule) {
       serverData.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
@@ -150,7 +150,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
       }
     );
     cacheItem!.scheduledMessage.start();
-  };
+  }
   if (runningCrons.length > 0)
     client?.user?.setActivity("the specified wallets", { type: "WATCHING" });
   console.log(`Restarted ${runningCrons.length} crons.`);
