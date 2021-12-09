@@ -72,10 +72,18 @@ class CovalentClient implements EthApiClient {
             let collectionTicker = log_event.sender_contract_ticker_symbol;
             let collectionAddress = log_event.sender_address;
             let operation = log_event.decoded.name;
-
+            /* 
+              Mints:
+              * Need to come from black hole address
+              * Need to go to the address of the person
+              * The address of the sender shouldn't be the address of the person
+              * The value should be null
+              * The operation should be Transfer
+            */
             if (
               fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
               toAddr === apiResponse.data.address &&
+              collectionAddress !== apiResponse.data.address &&
               value === null &&
               operation === "Transfer"
             ) {
