@@ -2,6 +2,7 @@ import axios from "axios";
 import { Guild, MessageEmbed, TextChannel } from "discord.js";
 import {
   DiscordClient,
+  EthApiResponse,
   MintCountObject,
   MongoResult,
   ServerData,
@@ -12,7 +13,6 @@ import {
   getNoUpdatesEmbed,
 } from "./embeds/embeds";
 import BotConstants from "./utils/constants";
-import { isWithinMinutes } from "./utils/utils";
 import cron from "cron";
 
 const addFieldsToEmbed = (
@@ -80,16 +80,22 @@ const getMintedForFollowingAddresses = async (
   for (const [address, name] of addressMap.entries()) {
     let mintCount: Map<string, MintCountObject>;
     let cacheItem = client.requestCache.get(address);
-    if (cacheItem && isWithinMinutes(cacheItem.lastUpdated, minutesToCheck)) {
+    if (
+      cacheItem &&
+      cacheItem.nextUpdate &&
+      Date.now() < cacheItem.nextUpdate
+    ) {
       mintCount = cacheItem.mintedMap;
     } else {
       try {
-        mintCount = await client.apiClient.getApiResponseAsMap(
+        const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
           address,
           minutesToCheck
         );
+        mintCount = res.mintCount;
         client.requestCache.set(address, {
           mintedMap: mintCount,
+          nextUpdate: res.nextUpdate,
           lastUpdated: Date.now().toString(),
         });
       } catch (e) {

@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import {
   EthApiClient,
+  EthApiResponse,
   EtherscanApiResult,
   EtherscanParams,
   MintCountObject,
@@ -27,7 +28,7 @@ class EtherscanClient implements EthApiClient {
   async getApiResponseAsMap(
     address: string,
     minutesToCheck: number
-  ): Promise<Map<string, MintCountObject>> {
+  ): Promise<EthApiResponse> {
     const params: EtherscanParams = this.ETHERSCAN_PARAMS;
     params.address = address;
     const apiRes: AxiosResponse<any, any> = await axios.get(
@@ -45,7 +46,10 @@ class EtherscanClient implements EthApiClient {
       res.result,
       minutesToCheck
     );
-    return mintCount;
+    return {
+      mintCount,
+      nextUpdate: Date.now() + 60 * 1000,
+    };
   }
 
   #getApiResponseAsMap = (

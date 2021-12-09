@@ -12,6 +12,7 @@ import { WalletCacheItem } from "./WalletCacheItem";
 import { Command } from "./Command";
 import { DiscordEvent } from "./DiscordEvent";
 import { DiscordClient } from "./DiscordClient";
+import { EthApiResponse } from "./EthApiResponse";
 
 export {
   DatabaseRepository,
@@ -28,4 +29,5 @@ export {
   Command,
   DiscordEvent,
   DiscordClient,
+  EthApiResponse,
 };

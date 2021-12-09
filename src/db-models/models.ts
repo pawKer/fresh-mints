@@ -25,7 +25,7 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
   });
 
 const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(
-  "server-settings",
+  "server-settings-test-4",
   ServerSettingsSchema
 );
 

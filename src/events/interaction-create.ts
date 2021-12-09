@@ -33,18 +33,18 @@ const interactionCreateEvent = {
     if (!data) {
       const dbData: MongoResult | null = await client.db.find(guild.id);
       if (!dbData) {
-        // TODO: Better handling when db result is null
+        console.log(`[${guild.id}] - No data found in DB`);
         data = {};
       } else {
         data = dbData;
-        if (!data.minutesToCheck || !data.schedule) {
-          data.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
-          data.schedule = BotConstants.DEFAULT_SCHEDULE;
-          await client.db.save(guild.id, {
-            minutesToCheck: data.minutesToCheck,
-            schedule: data.schedule,
-          });
-        }
+      }
+      if (!data.minutesToCheck || !data.schedule) {
+        data.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
+        data.schedule = BotConstants.DEFAULT_SCHEDULE;
+        await client.db.save(guild.id, {
+          minutesToCheck: data.minutesToCheck,
+          schedule: data.schedule,
+        });
       }
       client.serverCache.set(guild.id, data);
     }

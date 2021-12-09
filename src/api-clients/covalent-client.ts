@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import {
   CovalentApiResult,
   EthApiClient,
+  EthApiResponse,
   MintCountObject,
 } from "../../@types/bot";
 import { isWithinMinutes } from "../utils/utils";
@@ -23,7 +24,7 @@ class CovalentClient implements EthApiClient {
   async getApiResponseAsMap(
     address: string,
     minutesToCheck: number
-  ): Promise<Map<string, MintCountObject>> {
+  ): Promise<EthApiResponse> {
     const url: string = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
     const apiRes: AxiosResponse<any, any> = await axios.get(url, {
       auth: {
@@ -37,7 +38,11 @@ class CovalentClient implements EthApiClient {
       res,
       minutesToCheck
     );
-    return mintCount;
+
+    return {
+      mintCount,
+      nextUpdate: new Date(res.data.next_update_at).getTime(),
+    };
   }
 
   #getApiResponseAsMap = (
