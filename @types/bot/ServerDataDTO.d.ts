@@ -7,4 +7,5 @@ export interface ServerDataDTO {
   schedule?: string;
   alertRole?: string | null;
   guildName?: string;
+  contractMap?: Map<string, string>;
 }

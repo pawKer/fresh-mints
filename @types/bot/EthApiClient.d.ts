@@ -4,6 +4,7 @@ export interface EthApiClient {
   NAME: string;
   getApiResponseAsMap(
     address: string,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Promise<Map<string, MintCountObject>>;
 }

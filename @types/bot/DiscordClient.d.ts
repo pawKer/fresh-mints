@@ -5,13 +5,14 @@ import {
   DiscordEvent,
   EthApiClient,
   ServerData,
-  WalletCacheItem,
+  RequestCacheItem,
 } from ".";
 interface DiscordClient extends Client {
   commands: Collection<string, Command>;
   events: Collection<string, DiscordEvent>;
   serverCache: Collection<string, ServerData>;
-  requestCache: Collection<string, WalletCacheItem>;
+  requestCache: Collection<string, RequestCacheItem>;
+  contractRequestCache: Collection<string, RequestCacheItem>;
   db: DatabaseRepository;
   apiClient: EthApiClient;
   useEtherscan: boolean;

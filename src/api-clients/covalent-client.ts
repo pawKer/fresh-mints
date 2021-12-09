@@ -22,7 +22,8 @@ class CovalentClient implements EthApiClient {
 
   async getApiResponseAsMap(
     address: string,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Promise<Map<string, MintCountObject>> {
     const url: string = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
     const apiRes: AxiosResponse<any, any> = await axios.get(url, {
@@ -35,14 +36,16 @@ class CovalentClient implements EthApiClient {
     const res: CovalentApiResult = apiRes.data;
     const mintCount: Map<string, MintCountObject> = this.#getApiResponseAsMap(
       res,
-      minutesToCheck
+      minutesToCheck,
+      isContract
     );
     return mintCount;
   }
 
   #getApiResponseAsMap = (
     apiResponse: CovalentApiResult,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Map<string, MintCountObject> => {
     const mintCount: Map<string, MintCountObject> = new Map();
     if (apiResponse.data && apiResponse.data.items) {
@@ -72,21 +75,39 @@ class CovalentClient implements EthApiClient {
             let collectionTicker = log_event.sender_contract_ticker_symbol;
             let collectionAddress = log_event.sender_address;
             let operation = log_event.decoded.name;
-
-            if (
-              fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-              toAddr === apiResponse.data.address &&
-              value === null &&
-              operation === "Transfer"
-            ) {
-              const itemFromMap = mintCount.get(collectionAddress);
-              if (!itemFromMap) {
-                mintCount.set(collectionAddress, {
-                  tokenIds: [""],
-                  collectionName: collectionName || collectionTicker,
-                });
-              } else {
-                itemFromMap.tokenIds.push("");
+            if (isContract) {
+              if (
+                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                item.to_address === apiResponse.data.address &&
+                value === null &&
+                operation === "Transfer"
+              ) {
+                const itemFromMap = mintCount.get(collectionAddress);
+                if (!itemFromMap) {
+                  mintCount.set(collectionAddress, {
+                    tokenIds: [""],
+                    collectionName: collectionName || collectionTicker,
+                  });
+                } else {
+                  itemFromMap.tokenIds.push("");
+                }
+              }
+            } else {
+              if (
+                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                toAddr === apiResponse.data.address &&
+                value === null &&
+                operation === "Transfer"
+              ) {
+                const itemFromMap = mintCount.get(collectionAddress);
+                if (!itemFromMap) {
+                  mintCount.set(collectionAddress, {
+                    tokenIds: [""],
+                    collectionName: collectionName || collectionTicker,
+                  });
+                } else {
+                  itemFromMap.tokenIds.push("");
+                }
               }
             }
           }

@@ -24,11 +24,27 @@ const getBasicMintInfoEmbed = (name: string, address: string): MessageEmbed => {
     .setTimestamp();
 };
 
-const getFollowingInfoEmbed = (count: number): MessageEmbed => {
+const getBasicContractMintInfoEmbed = (
+  name: string,
+  address: string
+): MessageEmbed => {
+  return new MessageEmbed()
+    .setColor("#8000FF")
+    .setTitle(`Contract - ${name}`)
+    .setURL(`https://etherscan.io/address/${address}`)
+    .setTimestamp();
+};
+
+const getFollowingInfoEmbed = (
+  count: number,
+  contractCount: number
+): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Following list")
-    .setDescription(`Currently watching ${count} addresses:`)
+    .setDescription(
+      `Currently watching ${count} addresses and ${contractCount} contracts.`
+    )
     .setTimestamp();
 };
 
@@ -132,4 +148,5 @@ export {
   getNoUpdatesEmbed,
   getHelpEmbed,
   getInfoEmbed,
+  getBasicContractMintInfoEmbed,
 };
