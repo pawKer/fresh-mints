@@ -1,4 +1,4 @@
-import { MintCountObject } from ".";
+import { EthApiResponse } from ".";
 export interface EthApiClient {
   API_REQUEST_COUNT: number;
   NAME: string;
@@ -6,5 +6,5 @@ export interface EthApiClient {
     address: string,
     minutesToCheck: number,
     isContract?: boolean
-  ): Promise<Map<string, MintCountObject>>;
+  ): Promise<EthApiResponse>;
 }

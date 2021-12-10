@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import {
   CovalentApiResult,
   EthApiClient,
+  EthApiResponse,
   MintCountObject,
 } from "../../@types/bot";
 import { isWithinMinutes } from "../utils/utils";
@@ -24,7 +25,7 @@ class CovalentClient implements EthApiClient {
     address: string,
     minutesToCheck: number,
     isContract?: boolean
-  ): Promise<Map<string, MintCountObject>> {
+  ): Promise<EthApiResponse> {
     const url: string = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
     const apiRes: AxiosResponse<any, any> = await axios.get(url, {
       auth: {
@@ -39,7 +40,11 @@ class CovalentClient implements EthApiClient {
       minutesToCheck,
       isContract
     );
-    return mintCount;
+
+    return {
+      mintCount,
+      nextUpdate: new Date(res.data.next_update_at).getTime(),
+    };
   }
 
   #getApiResponseAsMap = (
@@ -75,12 +80,19 @@ class CovalentClient implements EthApiClient {
             let collectionTicker = log_event.sender_contract_ticker_symbol;
             let collectionAddress = log_event.sender_address;
             let operation = log_event.decoded.name;
+            /*
+              Mints:
+              * Need to come from black hole address
+              * Need to go to the address of the person
+              * The value should be null
+              * The operation should be Transfer
+            */
             if (isContract) {
               if (
-                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-                item.to_address === apiResponse.data.address &&
-                value === null &&
-                operation === "Transfer"
+                  fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                  item.to_address === apiResponse.data.address &&
+                  value === null &&
+                  operation === "Transfer"
               ) {
                 const itemFromMap = mintCount.get(collectionAddress);
                 if (!itemFromMap) {
@@ -94,10 +106,10 @@ class CovalentClient implements EthApiClient {
               }
             } else {
               if (
-                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-                toAddr === apiResponse.data.address &&
-                value === null &&
-                operation === "Transfer"
+                  fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                  toAddr === apiResponse.data.address &&
+                  value === null &&
+                  operation === "Transfer"
               ) {
                 const itemFromMap = mintCount.get(collectionAddress);
                 if (!itemFromMap) {
