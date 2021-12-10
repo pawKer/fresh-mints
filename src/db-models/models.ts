@@ -22,6 +22,8 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
     minutesToCheck: Number,
     schedule: String,
     alertRole: String,
+    guildName: String,
+    contractMap: Map,
   });
 
 const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(

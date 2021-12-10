@@ -1,9 +1,10 @@
-import { EthApiResponse, MintCountObject } from ".";
+import { EthApiResponse } from ".";
 export interface EthApiClient {
   API_REQUEST_COUNT: number;
   NAME: string;
   getApiResponseAsMap(
     address: string,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Promise<EthApiResponse>;
 }

@@ -23,7 +23,8 @@ class CovalentClient implements EthApiClient {
 
   async getApiResponseAsMap(
     address: string,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Promise<EthApiResponse> {
     const url: string = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
     const apiRes: AxiosResponse<any, any> = await axios.get(url, {
@@ -34,9 +35,10 @@ class CovalentClient implements EthApiClient {
     });
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
-    const mintCount: Map<string, MintCountObject> = this.#getApiResponseAsMap(
+    const mintCount: Map<string, MintCountObject> = this.getMintsAsMap(
       res,
-      minutesToCheck
+      minutesToCheck,
+      isContract
     );
 
     return {
@@ -45,18 +47,16 @@ class CovalentClient implements EthApiClient {
     };
   }
 
-  #getApiResponseAsMap = (
+  private getMintsAsMap = (
     apiResponse: CovalentApiResult,
-    minutesToCheck: number
+    minutesToCheck: number,
+    isContract?: boolean
   ): Map<string, MintCountObject> => {
     const mintCount: Map<string, MintCountObject> = new Map();
     if (apiResponse.data && apiResponse.data.items) {
       for (let item of apiResponse.data.items) {
         const date = new Date(item.block_signed_at);
         const timestamp = date.getTime();
-        if (item.from_address !== apiResponse.data.address) {
-          continue;
-        }
         if (isWithinMinutes(timestamp.toString(), minutesToCheck)) {
           if (!item.log_events || !(item.log_events.length > 0)) {
             continue;
@@ -77,27 +77,38 @@ class CovalentClient implements EthApiClient {
             let collectionTicker = log_event.sender_contract_ticker_symbol;
             let collectionAddress = log_event.sender_address;
             let operation = log_event.decoded.name;
-            /* 
-              Mints:
+            /*
+              Mints
+              For wallet:
               * Need to come from black hole address
-              * Need to go to the address of the person
+              * Need to go to the address of the owner
+              * Transaction from address needs to be the owner address
+              * The value should be null
+              * The operation should be Transfer
+              For contract:
+              * Need to come from black hole address
+              * The to_address should be the address of the contract
               * The value should be null
               * The operation should be Transfer
             */
-            if (
-              fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-              toAddr === apiResponse.data.address &&
-              value === null &&
-              operation === "Transfer"
-            ) {
-              const itemFromMap = mintCount.get(collectionAddress);
-              if (!itemFromMap) {
-                mintCount.set(collectionAddress, {
-                  tokenIds: [""],
-                  collectionName: collectionName || collectionTicker,
-                });
-              } else {
-                itemFromMap.tokenIds.push("");
+            if (isContract) {
+              if (
+                  fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                  collectionAddress === apiResponse.data.address &&
+                  value === null &&
+                  operation === "Transfer"
+              ) {
+                this.addToMap(mintCount, collectionAddress, collectionName, collectionTicker);
+              }
+            } else {
+              if (
+                  fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+                  toAddr === apiResponse.data.address &&
+                  item.from_address === apiResponse.data.address &&
+                  value === null &&
+                  operation === "Transfer"
+              ) {
+                this.addToMap(mintCount, collectionAddress, collectionName, collectionTicker);
               }
             }
           }
@@ -108,5 +119,17 @@ class CovalentClient implements EthApiClient {
     }
     return mintCount;
   };
+
+  private addToMap(mintCount: Map<string, MintCountObject>, collectionAddress: string, collectionName: string, collectionTicker: string) {
+    const itemFromMap = mintCount.get(collectionAddress);
+    if (!itemFromMap) {
+      mintCount.set(collectionAddress, {
+        tokenIds: [""],
+        collectionName: collectionName || collectionTicker,
+      });
+    } else {
+      itemFromMap.tokenIds.push("");
+    }
+  }
 }
 export default CovalentClient;

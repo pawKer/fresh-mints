@@ -8,6 +8,7 @@ import {
   ServerData,
 } from "../@types/bot";
 import {
+  getBasicContractMintInfoEmbed,
   getBasicMintInfoEmbed,
   getErrorEmbed,
   getNoUpdatesEmbed,
@@ -44,94 +45,169 @@ const addFieldsToEmbed = (
   );
 };
 
+const getMintsForAddress = async (
+  client: DiscordClient,
+  address: string,
+  name: string,
+  minutesToCheck: number,
+  serverId: string,
+  infoChannel: undefined | TextChannel,
+  isContract?: boolean
+): Promise<Map<string, MintCountObject> | undefined> => {
+  let mintCount: Map<string, MintCountObject>;
+  let cacheItem = client.requestCache.get(address);
+  if (cacheItem && cacheItem.nextUpdate && Date.now() < cacheItem.nextUpdate) {
+    mintCount = cacheItem.mintedMap;
+  } else {
+    try {
+      const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
+        address,
+        minutesToCheck,
+        isContract
+      );
+      mintCount = res.mintCount;
+      client.requestCache.set(address, {
+        mintedMap: mintCount,
+        nextUpdate: res.nextUpdate,
+        lastUpdated: Date.now().toString(),
+      });
+    } catch (e) {
+      handleApiErrors(e, serverId, infoChannel, name, address, minutesToCheck);
+      return;
+    }
+  }
+  return mintCount;
+};
+
 const getMintedForFollowingAddresses = async (
   client: DiscordClient,
   serverId: string
 ): Promise<void> => {
   let cacheResult: ServerData | undefined = client.serverCache.get(serverId);
   if (!cacheResult) {
+    console.error(`[${serverId}] GET_DATA`, "Cache not populated");
     return;
   }
   const {
     alertChannelId,
     infoChannelId,
     addressMap,
+    contractMap,
     minutesToCheck,
     alertRole,
   } = cacheResult;
 
-  if (!alertChannelId || !addressMap || !minutesToCheck) {
-    console.error(`[${serverId}] GET_DATA`, "Some fields were not populated.");
+  if (!alertChannelId || !minutesToCheck) {
+    console.error(
+      `[${serverId}] GET_DATA`,
+      "Alert channel or minutes to check not populated."
+    );
     return;
   }
 
-  const guild: Guild | undefined = client.guilds.cache.get(serverId);
+  let guild: Guild | undefined = client.guilds.cache.get(serverId);
 
-  const channel: TextChannel = guild?.channels.cache.get(
+  if (!guild) {
+    console.error(`[${serverId}] GET_DATA`, "Guild not populated");
+    return;
+  }
+
+  let channel: TextChannel | null = guild.channels.cache.get(
     alertChannelId
   ) as TextChannel;
 
+  if (!channel) {
+    console.error(`[${serverId}] GET_DATA`, "Alert channel not populated");
+    return;
+  }
+
   let infoChannel: TextChannel | undefined = undefined;
   if (infoChannelId) {
-    infoChannel = guild?.channels.cache.get(infoChannelId) as TextChannel;
+    infoChannel = guild.channels.cache.get(infoChannelId) as TextChannel;
   }
 
   let noUpdates: boolean = true;
-  for (const [address, name] of addressMap.entries()) {
-    let mintCount: Map<string, MintCountObject>;
-    let cacheItem = client.requestCache.get(address);
-    if (
-      cacheItem &&
-      cacheItem.nextUpdate &&
-      Date.now() < cacheItem.nextUpdate
-    ) {
-      mintCount = cacheItem.mintedMap;
-    } else {
-      try {
-        const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
-          address,
-          minutesToCheck
-        );
-        mintCount = res.mintCount;
-        client.requestCache.set(address, {
-          mintedMap: mintCount,
-          nextUpdate: res.nextUpdate,
-          lastUpdated: Date.now().toString(),
-        });
-      } catch (e) {
-        let message: string;
-        if (axios.isAxiosError(e) && e.response) {
-          message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
-        } else {
-          message = e.message;
-        }
-        infoChannel &&
-          infoChannel.send({
-            embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
-          });
-        console.error(`[${serverId}] API_CLIENT_ERROR`, message);
-        continue;
+  if (addressMap) {
+    for (const [address, name] of addressMap.entries()) {
+      let mintCount = await getMintsForAddress(
+        client,
+        address,
+        name,
+        minutesToCheck,
+        serverId,
+        infoChannel
+      );
+
+      if (!mintCount) continue;
+
+      const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
+
+      addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
+
+      if (mintCount.size > 0) {
+        await channel.send({ embeds: [mintInfoEmbed] });
+        noUpdates = false;
       }
     }
+  }
+  if (contractMap) {
+    for (const [address, name] of contractMap.entries()) {
+      let mintCount = await getMintsForAddress(
+        client,
+        address,
+        name,
+        minutesToCheck,
+        serverId,
+        infoChannel,
+        true
+      );
 
-    const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
+      if (!mintCount) continue;
 
-    addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
+      const mintInfoEmbed: MessageEmbed = getBasicContractMintInfoEmbed(
+        name,
+        address
+      );
 
-    if (mintCount.size > 0) {
-      channel.send({ embeds: [mintInfoEmbed] });
-      noUpdates = false;
+      addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
+
+      if (mintCount.size > 0) {
+        await channel.send({ embeds: [mintInfoEmbed] });
+        noUpdates = false;
+      }
     }
   }
+
   if (!noUpdates) {
     if (alertRole) {
-      channel.send(`<@&${alertRole}>`);
+      await channel.send(`<@&${alertRole}>`);
     }
   } else {
     if (infoChannel) {
-      infoChannel.send({ embeds: [getNoUpdatesEmbed(minutesToCheck)] });
+      await infoChannel.send({ embeds: [getNoUpdatesEmbed(minutesToCheck)] });
     }
   }
+};
+
+const handleApiErrors = (
+  e: any,
+  serverId: string,
+  infoChannel: TextChannel | undefined,
+  name: string,
+  address: string,
+  minutesToCheck: number
+) => {
+  let message: string;
+  if (axios.isAxiosError(e) && e.response) {
+    message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
+  } else {
+    message = e.message;
+  }
+  infoChannel &&
+    infoChannel.send({
+      embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
+    });
+  console.error(`[${serverId}] [${address}] API_CLIENT_ERROR`, message);
 };
 
 const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
@@ -152,7 +228,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
     cacheItem!.scheduledMessage = new cron.CronJob(
       serverData.schedule,
       async () => {
-        getMintedForFollowingAddresses(client, dbData._id);
+        await getMintedForFollowingAddresses(client, dbData._id);
       }
     );
     cacheItem!.scheduledMessage.start();

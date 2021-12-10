@@ -13,38 +13,39 @@ const toggleCommand: Command = {
     if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
+    if (!cacheItem) return;
     if (
-      !cacheItem ||
-      !cacheItem.addressMap ||
-      cacheItem.addressMap.size === 0
+      (cacheItem.addressMap && cacheItem.addressMap.size > 0) ||
+      (cacheItem.contractMap && cacheItem.contractMap.size > 0)
     ) {
+      if (cacheItem.areScheduledMessagesOn) {
+        cacheItem.areScheduledMessagesOn = false;
+        await client.db.save(guild.id, { areScheduledMessagesOn: false });
+        if (cacheItem.scheduledMessage) cacheItem.scheduledMessage.stop();
+        await interaction.reply("Turned scheduled messages off.");
+        console.log(`[${guild.id}] - Turned scheduled messages off.`);
+      } else {
+        cacheItem.areScheduledMessagesOn = true;
+        await client.db.save(guild.id, { areScheduledMessagesOn: true });
+        if (!cacheItem.scheduledMessage) {
+          cacheItem.scheduledMessage = new cron.CronJob(
+            cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
+            async () => {
+              getMintedForFollowingAddresses(client, guild.id);
+            }
+          );
+        }
+        cacheItem.scheduledMessage.start();
+        await interaction.reply("Turned scheduled messages on.");
+        console.log(`[${guild.id}] - Turned scheduled messages on.`);
+      }
+    } else {
       await interaction.reply({
         content:
           "You are currently not following any ETH addresses. Use the `/add` command to add some.",
         ephemeral: true,
       });
       return;
-    }
-    if (cacheItem.areScheduledMessagesOn) {
-      cacheItem.areScheduledMessagesOn = false;
-      await client.db.save(guild.id, { areScheduledMessagesOn: false });
-      if (cacheItem.scheduledMessage) cacheItem.scheduledMessage.stop();
-      await interaction.reply("Turned scheduled messages off.");
-      console.log(`[${guild.id}] - Turned scheduled messages off.`);
-    } else {
-      cacheItem.areScheduledMessagesOn = true;
-      await client.db.save(guild.id, { areScheduledMessagesOn: true });
-      if (!cacheItem.scheduledMessage) {
-        cacheItem.scheduledMessage = new cron.CronJob(
-          cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
-          async () => {
-            getMintedForFollowingAddresses(client, guild.id);
-          }
-        );
-      }
-      cacheItem.scheduledMessage.start();
-      await interaction.reply("Turned scheduled messages on.");
-      console.log(`[${guild.id}] - Turned scheduled messages on.`);
     }
   },
 };

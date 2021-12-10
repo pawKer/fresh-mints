@@ -1,5 +1,5 @@
 import { MintCountObject } from ".";
-export interface WalletCacheItem {
+export interface RequestCacheItem {
   lastUpdated: string;
   nextUpdate?: number;
   mintedMap: Map<string, MintCountObject>;

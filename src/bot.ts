@@ -5,7 +5,7 @@ import {
   DatabaseRepository,
   ServerData,
   EthApiClient,
-  WalletCacheItem,
+  RequestCacheItem,
   Command,
   DiscordEvent,
   DiscordClient,
@@ -21,7 +21,7 @@ const mongo: DatabaseRepository = new MongoDb(MONGO_URI);
 const apiClient: EthApiClient = new CovalentClient();
 
 const serverCache: Collection<string, ServerData> = new Collection();
-const requestCache: Collection<string, WalletCacheItem> = new Collection();
+const requestCache: Collection<string, RequestCacheItem> = new Collection();
 
 let client: DiscordClient;
 

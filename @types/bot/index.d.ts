@@ -8,7 +8,7 @@ import { EtherscanApiResult } from "./EtherscanApiResult";
 import { MintCountObject } from "./MintCountObject";
 import { EthApiClient } from "./EthApiClient";
 import { CovalentApiResult } from "./CovalentApiResult";
-import { WalletCacheItem } from "./WalletCacheItem";
+import { RequestCacheItem } from "./RequestCacheItem";
 import { Command } from "./Command";
 import { DiscordEvent } from "./DiscordEvent";
 import { DiscordClient } from "./DiscordClient";
@@ -25,7 +25,7 @@ export {
   MintCountObject,
   EthApiClient,
   CovalentApiResult,
-  WalletCacheItem,
+  RequestCacheItem,
   Command,
   DiscordEvent,
   DiscordClient,

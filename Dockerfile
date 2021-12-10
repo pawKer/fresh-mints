@@ -19,7 +19,7 @@ COPY tsconfig*.json ./
 RUN npm install --only=production
 
 COPY --from=0 /usr/src/app/build .
-# COPY --from=0 /usr/src/app/.env .
+COPY --from=0 /usr/src/app/.env .
 
 RUN npm install pm2 -g
 ENV NODE_ENV=prod
