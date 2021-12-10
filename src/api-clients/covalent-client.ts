@@ -57,9 +57,6 @@ class CovalentClient implements EthApiClient {
       for (let item of apiResponse.data.items) {
         const date = new Date(item.block_signed_at);
         const timestamp = date.getTime();
-        if (item.from_address !== apiResponse.data.address) {
-          continue;
-        }
         if (isWithinMinutes(timestamp.toString(), minutesToCheck)) {
           if (!item.log_events || !(item.log_events.length > 0)) {
             continue;
@@ -84,7 +81,8 @@ class CovalentClient implements EthApiClient {
               Mints
               For wallet:
               * Need to come from black hole address
-              * Need to go to the address of the person
+              * Need to go to the address of the owner
+              * Transaction from address needs to be the owner address
               * The value should be null
               * The operation should be Transfer
               For contract:
@@ -96,7 +94,7 @@ class CovalentClient implements EthApiClient {
             if (isContract) {
               if (
                   fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-                  item.to_address === apiResponse.data.address &&
+                  collectionAddress === apiResponse.data.address &&
                   value === null &&
                   operation === "Transfer"
               ) {
@@ -106,6 +104,7 @@ class CovalentClient implements EthApiClient {
               if (
                   fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
                   toAddr === apiResponse.data.address &&
+                  item.from_address === apiResponse.data.address &&
                   value === null &&
                   operation === "Transfer"
               ) {

@@ -45,19 +45,26 @@ const addFieldsToEmbed = (
   );
 };
 
-const getMintsForAddress = async (client: DiscordClient, address: string, name: string, minutesToCheck: number, serverId: string, infoChannel: undefined | TextChannel): Promise<Map<string, MintCountObject> | undefined> => {
+const getMintsForAddress = async (
+  client: DiscordClient,
+  address: string,
+  name: string,
+  minutesToCheck: number,
+  serverId: string,
+  infoChannel: undefined | TextChannel,
+  isContract?: boolean
+): Promise<Map<string, MintCountObject> | undefined> => {
   let mintCount: Map<string, MintCountObject>;
   let cacheItem = client.requestCache.get(address);
-  if (
-      cacheItem &&
-      cacheItem.nextUpdate &&
-      Date.now() < cacheItem.nextUpdate
-  ) {
+  if (cacheItem && cacheItem.nextUpdate && Date.now() < cacheItem.nextUpdate) {
     mintCount = cacheItem.mintedMap;
   } else {
     try {
-      const res: EthApiResponse =
-          await client.apiClient.getApiResponseAsMap(address, minutesToCheck);
+      const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
+        address,
+        minutesToCheck,
+        isContract
+      );
       mintCount = res.mintCount;
       client.requestCache.set(address, {
         mintedMap: mintCount,
@@ -65,19 +72,12 @@ const getMintsForAddress = async (client: DiscordClient, address: string, name: 
         lastUpdated: Date.now().toString(),
       });
     } catch (e) {
-      handleApiErrors(
-          e,
-          serverId,
-          infoChannel,
-          name,
-          address,
-          minutesToCheck
-      );
+      handleApiErrors(e, serverId, infoChannel, name, address, minutesToCheck);
       return;
     }
   }
   return mintCount;
-}
+};
 
 const getMintedForFollowingAddresses = async (
   client: DiscordClient,
@@ -85,6 +85,7 @@ const getMintedForFollowingAddresses = async (
 ): Promise<void> => {
   let cacheResult: ServerData | undefined = client.serverCache.get(serverId);
   if (!cacheResult) {
+    console.error(`[${serverId}] GET_DATA`, "Cache not populated");
     return;
   }
   const {
@@ -104,39 +105,64 @@ const getMintedForFollowingAddresses = async (
     return;
   }
 
-  const guild: Guild | undefined = client.guilds.cache.get(serverId);
+  let guild: Guild | undefined = client.guilds.cache.get(serverId);
 
-  const channel: TextChannel = guild?.channels.cache.get(
+  if (!guild) {
+    console.error(`[${serverId}] GET_DATA`, "Guild not populated");
+    return;
+  }
+
+  let channel: TextChannel | null = guild.channels.cache.get(
     alertChannelId
   ) as TextChannel;
 
+  if (!channel) {
+    console.error(`[${serverId}] GET_DATA`, "Alert channel not populated");
+    return;
+  }
+
   let infoChannel: TextChannel | undefined = undefined;
   if (infoChannelId) {
-    infoChannel = guild?.channels.cache.get(infoChannelId) as TextChannel;
+    infoChannel = guild.channels.cache.get(infoChannelId) as TextChannel;
   }
 
   let noUpdates: boolean = true;
   if (addressMap) {
     for (const [address, name] of addressMap.entries()) {
-      let mintCount = await getMintsForAddress(client, address, name, minutesToCheck, serverId, infoChannel);
+      let mintCount = await getMintsForAddress(
+        client,
+        address,
+        name,
+        minutesToCheck,
+        serverId,
+        infoChannel
+      );
 
-      if(!mintCount) continue
+      if (!mintCount) continue;
 
       const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
 
       addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
 
       if (mintCount.size > 0) {
-        channel.send({ embeds: [mintInfoEmbed] });
+        await channel.send({ embeds: [mintInfoEmbed] });
         noUpdates = false;
       }
     }
   }
   if (contractMap) {
     for (const [address, name] of contractMap.entries()) {
-      let mintCount = await getMintsForAddress(client, address, name, minutesToCheck, serverId, infoChannel);
+      let mintCount = await getMintsForAddress(
+        client,
+        address,
+        name,
+        minutesToCheck,
+        serverId,
+        infoChannel,
+        true
+      );
 
-      if(!mintCount) continue
+      if (!mintCount) continue;
 
       const mintInfoEmbed: MessageEmbed = getBasicContractMintInfoEmbed(
         name,
@@ -146,7 +172,7 @@ const getMintedForFollowingAddresses = async (
       addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
 
       if (mintCount.size > 0) {
-        channel.send({ embeds: [mintInfoEmbed] });
+        await channel.send({ embeds: [mintInfoEmbed] });
         noUpdates = false;
       }
     }
@@ -154,11 +180,11 @@ const getMintedForFollowingAddresses = async (
 
   if (!noUpdates) {
     if (alertRole) {
-      channel.send(`<@&${alertRole}>`);
+      await channel.send(`<@&${alertRole}>`);
     }
   } else {
     if (infoChannel) {
-      infoChannel.send({ embeds: [getNoUpdatesEmbed(minutesToCheck)] });
+      await infoChannel.send({ embeds: [getNoUpdatesEmbed(minutesToCheck)] });
     }
   }
 };
@@ -202,7 +228,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
     cacheItem!.scheduledMessage = new cron.CronJob(
       serverData.schedule,
       async () => {
-        getMintedForFollowingAddresses(client, dbData._id);
+        await getMintedForFollowingAddresses(client, dbData._id);
       }
     );
     cacheItem!.scheduledMessage.start();
