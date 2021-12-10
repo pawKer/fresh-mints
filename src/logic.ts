@@ -181,7 +181,7 @@ const handleApiErrors = (
     infoChannel.send({
       embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
     });
-  console.error(`[${serverId}] API_CLIENT_ERROR`, message);
+  console.error(`[${serverId}] [${address}] API_CLIENT_ERROR`, message);
 };
 
 const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
