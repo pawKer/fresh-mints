@@ -12,7 +12,6 @@ interface DiscordClient extends Client {
   events: Collection<string, DiscordEvent>;
   serverCache: Collection<string, ServerData>;
   requestCache: Collection<string, RequestCacheItem>;
-  contractRequestCache: Collection<string, RequestCacheItem>;
   db: DatabaseRepository;
   apiClient: EthApiClient;
   useEtherscan: boolean;

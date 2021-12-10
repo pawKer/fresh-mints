@@ -13,19 +13,6 @@ const toggleCommand: Command = {
     if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
-    // if (
-    //   !cacheItem ||
-    //   !cacheItem.addressMap ||
-    //   !cacheItem.contractMap ||
-    //   (cacheItem.addressMap.size === 0 && cacheItem.contractMap.size === 0)
-    // ) {
-    //   await interaction.reply({
-    //     content:
-    //       "You are currently not following any ETH addresses. Use the `/add` command to add some.",
-    //     ephemeral: true,
-    //   });
-    //   return;
-    // }
     if (!cacheItem) return;
     if (
       (cacheItem.addressMap && cacheItem.addressMap.size > 0) ||
