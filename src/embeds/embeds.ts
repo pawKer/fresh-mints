@@ -19,7 +19,7 @@ const getErrorEmbed = (
 const getBasicMintInfoEmbed = (name: string, address: string): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#0099ff")
-    .setTitle(name)
+    .setTitle(`💸 - ${name}`)
     .setURL(`https://etherscan.io/address/${address}`)
     .setTimestamp();
 };
@@ -30,7 +30,7 @@ const getBasicContractMintInfoEmbed = (
 ): MessageEmbed => {
   return new MessageEmbed()
     .setColor("#8000FF")
-    .setTitle(`Contract - ${name}`)
+    .setTitle(`📜 - ${name}`)
     .setURL(`https://etherscan.io/address/${address}`)
     .setTimestamp();
 };
