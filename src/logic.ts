@@ -63,7 +63,10 @@ const getMintedForFollowingAddresses = async (
   } = cacheResult;
 
   if (!alertChannelId || !minutesToCheck) {
-    console.error(`[${serverId}] GET_DATA`, "Some fields were not populated.");
+    console.error(
+      `[${serverId}] GET_DATA`,
+      "Alert channel or minutes to check not populated."
+    );
     return;
   }
 
@@ -80,39 +83,37 @@ const getMintedForFollowingAddresses = async (
 
   let noUpdates: boolean = true;
   if (addressMap) {
-  for (const [address, name] of addressMap.entries()) {
-    let mintCount: Map<string, MintCountObject>;
-    let cacheItem = client.requestCache.get(address);
-    if (
-      cacheItem &&
-      cacheItem.nextUpdate &&
-      Date.now() < cacheItem.nextUpdate
-    ) {
-      mintCount = cacheItem.mintedMap;
-    } else {
-      try {
-        const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
-          address,
-          minutesToCheck
-        );
-        mintCount = res.mintCount;
-        client.requestCache.set(address, {
-          mintedMap: mintCount,
-          nextUpdate: res.nextUpdate,
-          lastUpdated: Date.now().toString(),
-        });
-      } catch (e) {
-        handleApiErrors(
+    for (const [address, name] of addressMap.entries()) {
+      let mintCount: Map<string, MintCountObject>;
+      let cacheItem = client.requestCache.get(address);
+      if (
+        cacheItem &&
+        cacheItem.nextUpdate &&
+        Date.now() < cacheItem.nextUpdate
+      ) {
+        mintCount = cacheItem.mintedMap;
+      } else {
+        try {
+          const res: EthApiResponse =
+            await client.apiClient.getApiResponseAsMap(address, minutesToCheck);
+          mintCount = res.mintCount;
+          client.requestCache.set(address, {
+            mintedMap: mintCount,
+            nextUpdate: res.nextUpdate,
+            lastUpdated: Date.now().toString(),
+          });
+        } catch (e) {
+          handleApiErrors(
             e,
             serverId,
             infoChannel,
             name,
             address,
             minutesToCheck
-        );
-        continue;
+          );
+          continue;
+        }
       }
-    }
 
       const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
 
@@ -129,17 +130,15 @@ const getMintedForFollowingAddresses = async (
       let mintCount: Map<string, MintCountObject>;
       let cacheItem = client.contractRequestCache.get(address);
       if (
-          cacheItem &&
-          cacheItem.nextUpdate &&
-          Date.now() < cacheItem.nextUpdate
+        cacheItem &&
+        cacheItem.nextUpdate &&
+        Date.now() < cacheItem.nextUpdate
       ) {
         mintCount = cacheItem.mintedMap;
       } else {
         try {
-          const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
-              address,
-              minutesToCheck
-          );
+          const res: EthApiResponse =
+            await client.apiClient.getApiResponseAsMap(address, minutesToCheck);
           mintCount = res.mintCount;
           client.requestCache.set(address, {
             mintedMap: mintCount,

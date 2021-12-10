@@ -35,7 +35,7 @@ class CovalentClient implements EthApiClient {
     });
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
-    const mintCount: Map<string, MintCountObject> = this.#getApiResponseAsMap(
+    const mintCount: Map<string, MintCountObject> = this.getMintsAsMap(
       res,
       minutesToCheck,
       isContract
@@ -47,7 +47,7 @@ class CovalentClient implements EthApiClient {
     };
   }
 
-  #getApiResponseAsMap = (
+  private getMintsAsMap = (
     apiResponse: CovalentApiResult,
     minutesToCheck: number,
     isContract?: boolean
@@ -81,9 +81,15 @@ class CovalentClient implements EthApiClient {
             let collectionAddress = log_event.sender_address;
             let operation = log_event.decoded.name;
             /*
-              Mints:
+              Mints
+              For wallet:
               * Need to come from black hole address
               * Need to go to the address of the person
+              * The value should be null
+              * The operation should be Transfer
+              For contract:
+              * Need to come from black hole address
+              * The to_address should be the address of the contract
               * The value should be null
               * The operation should be Transfer
             */
@@ -94,15 +100,7 @@ class CovalentClient implements EthApiClient {
                   value === null &&
                   operation === "Transfer"
               ) {
-                const itemFromMap = mintCount.get(collectionAddress);
-                if (!itemFromMap) {
-                  mintCount.set(collectionAddress, {
-                    tokenIds: [""],
-                    collectionName: collectionName || collectionTicker,
-                  });
-                } else {
-                  itemFromMap.tokenIds.push("");
-                }
+                this.addToMap(mintCount, collectionAddress, collectionName, collectionTicker);
               }
             } else {
               if (
@@ -111,15 +109,7 @@ class CovalentClient implements EthApiClient {
                   value === null &&
                   operation === "Transfer"
               ) {
-                const itemFromMap = mintCount.get(collectionAddress);
-                if (!itemFromMap) {
-                  mintCount.set(collectionAddress, {
-                    tokenIds: [""],
-                    collectionName: collectionName || collectionTicker,
-                  });
-                } else {
-                  itemFromMap.tokenIds.push("");
-                }
+                this.addToMap(mintCount, collectionAddress, collectionName, collectionTicker);
               }
             }
           }
@@ -130,5 +120,17 @@ class CovalentClient implements EthApiClient {
     }
     return mintCount;
   };
+
+  private addToMap(mintCount: Map<string, MintCountObject>, collectionAddress: string, collectionName: string, collectionTicker: string) {
+    const itemFromMap = mintCount.get(collectionAddress);
+    if (!itemFromMap) {
+      mintCount.set(collectionAddress, {
+        tokenIds: [""],
+        collectionName: collectionName || collectionTicker,
+      });
+    } else {
+      itemFromMap.tokenIds.push("");
+    }
+  }
 }
 export default CovalentClient;
