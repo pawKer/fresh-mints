@@ -4,7 +4,7 @@ import { Command, ServerData } from "../../../@types/bot";
 import { getFollowingInfoEmbed } from "../../embeds/embeds";
 import BotConstants from "../../utils/constants";
 const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
-  let cacheResult: ServerData | undefined = data;
+  const cacheResult: ServerData | undefined = data;
   const addressMap: Map<string, string> | undefined = cacheResult?.addressMap;
   const contractMap = cacheResult?.contractMap;
   const exampleEmbed = getFollowingInfoEmbed(

@@ -21,7 +21,7 @@ const addFieldsToEmbed = (
   embed: MessageEmbed,
   minutesToCheck: number
 ): void => {
-  let colNames: string[] = [];
+  const colNames: string[] = [];
   for (const [nftAddress, info] of mintCountMap.entries()) {
     const etherscanLink = `[Etherscan](${BotConstants.ETHERSCAN_ADDRESS_URL}/${nftAddress})`;
     const openseaLink = `[Opensea](${BotConstants.OPENSEA_URL}/${nftAddress}/${
@@ -55,7 +55,7 @@ const getMintsForAddress = async (
   isContract?: boolean
 ): Promise<Map<string, MintCountObject> | undefined> => {
   let mintCount: Map<string, MintCountObject>;
-  let cacheItem = client.requestCache.get(address);
+  const cacheItem = client.requestCache.get(address);
   if (cacheItem && cacheItem.nextUpdate && Date.now() < cacheItem.nextUpdate) {
     mintCount = cacheItem.mintedMap;
   } else {
@@ -83,7 +83,7 @@ const getMintedForFollowingAddresses = async (
   client: DiscordClient,
   serverId: string
 ): Promise<void> => {
-  let cacheResult: ServerData | undefined = client.serverCache.get(serverId);
+  const cacheResult: ServerData | undefined = client.serverCache.get(serverId);
   if (!cacheResult) {
     console.error(`[${serverId}] GET_DATA`, "Cache not populated");
     return;
@@ -105,14 +105,14 @@ const getMintedForFollowingAddresses = async (
     return;
   }
 
-  let guild: Guild | undefined = client.guilds.cache.get(serverId);
+  const guild: Guild | undefined = client.guilds.cache.get(serverId);
 
   if (!guild) {
     console.error(`[${serverId}] GET_DATA`, "Guild not populated");
     return;
   }
 
-  let channel: TextChannel | null = guild.channels.cache.get(
+  const channel: TextChannel | null = guild.channels.cache.get(
     alertChannelId
   ) as TextChannel;
 
@@ -126,10 +126,10 @@ const getMintedForFollowingAddresses = async (
     infoChannel = guild.channels.cache.get(infoChannelId) as TextChannel;
   }
 
-  let noUpdates: boolean = true;
+  let noUpdates = true;
   if (addressMap) {
     for (const [address, name] of addressMap.entries()) {
-      let mintCount = await getMintsForAddress(
+      const mintCount = await getMintsForAddress(
         client,
         address,
         name,
@@ -152,7 +152,7 @@ const getMintedForFollowingAddresses = async (
   }
   if (contractMap) {
     for (const [address, name] of contractMap.entries()) {
-      let mintCount = await getMintsForAddress(
+      const mintCount = await getMintsForAddress(
         client,
         address,
         name,
@@ -224,7 +224,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
       });
     }
     client.serverCache.set(dbData._id, serverData);
-    let cacheItem = client.serverCache.get(dbData._id);
+    const cacheItem = client.serverCache.get(dbData._id);
     cacheItem!.scheduledMessage = new cron.CronJob(
       serverData.schedule,
       async () => {

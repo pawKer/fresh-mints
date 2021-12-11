@@ -31,6 +31,6 @@ const updateCommands = async (commands: string[]): Promise<void> => {
 };
 
 readCommands().then(async (commands) => {
-  let deployCmds: string[] = commands.map((cmd) => cmd.data.toJSON());
+  const deployCmds: string[] = commands.map((cmd) => cmd.data.toJSON());
   await updateCommands(deployCmds);
 });

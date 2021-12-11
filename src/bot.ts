@@ -10,7 +10,6 @@ import {
   DiscordEvent,
   DiscordClient,
 } from "../@types/bot";
-import EtherscanClient from "./api-clients/etherscan-client";
 import CovalentClient from "./api-clients/covalent-client";
 import { readCommands, readEvents } from "./utils/utils";
 dotenv.config();
@@ -23,21 +22,17 @@ const apiClient: EthApiClient = new CovalentClient();
 const serverCache: Collection<string, ServerData> = new Collection();
 const requestCache: Collection<string, RequestCacheItem> = new Collection();
 
-let client: DiscordClient;
-
-const tempClient: any = new Client({
+const client: DiscordClient = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-});
+}) as DiscordClient;
 
-tempClient.commands = new Collection<string, Command>();
-tempClient.events = new Collection<string, DiscordEvent>();
-tempClient.serverCache = serverCache;
-tempClient.requestCache = requestCache;
-tempClient.db = mongo;
-tempClient.apiClient = apiClient;
-tempClient.useEtherscan = false;
-
-client = tempClient;
+client.commands = new Collection<string, Command>();
+client.events = new Collection<string, DiscordEvent>();
+client.serverCache = serverCache;
+client.requestCache = requestCache;
+client.db = mongo;
+client.apiClient = apiClient;
+client.useEtherscan = false;
 
 readCommands().then((commands) => {
   commands.forEach((cmd) => {
@@ -49,9 +44,9 @@ readEvents().then((events) => {
   events.forEach((ev) => {
     console.log(ev);
     if (ev.once) {
-      client.once(ev.name, (...args: any[]) => ev.execute(...args));
+      client.once(ev.name, (...args: unknown[]) => ev.execute(...args));
     } else {
-      client.on(ev.name, (...args: any[]) => ev.execute(...args));
+      client.on(ev.name, (...args: unknown[]) => ev.execute(...args));
     }
   });
 });

@@ -111,7 +111,7 @@ const getInfoEmbed = (
   alertRole: string | undefined | null,
   messagesStatus: boolean | undefined
 ): MessageEmbed => {
-  let infoEmbed = new MessageEmbed()
+  const infoEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Channel config info")
     .setDescription(`The following channels are being used for bot messages:`)

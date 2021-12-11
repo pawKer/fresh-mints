@@ -11,8 +11,8 @@ import BotConstants from "../utils/constants";
 import { isWithinMinutes } from "../utils/utils";
 
 class EtherscanClient implements EthApiClient {
-  NAME: string = "Etherscan";
-  ETHERSCAN_API_URL: string = "https://api.etherscan.io/api";
+  NAME = "Etherscan";
+  ETHERSCAN_API_URL = "https://api.etherscan.io/api";
   ETHERSCAN_PARAMS: EtherscanParams = {
     module: "account",
     action: "tokennfttx",
@@ -31,7 +31,7 @@ class EtherscanClient implements EthApiClient {
   ): Promise<EthApiResponse> {
     const params: EtherscanParams = this.ETHERSCAN_PARAMS;
     params.address = address;
-    const apiRes: AxiosResponse<any, any> = await axios.get(
+    const apiRes: AxiosResponse<never, never> = await axios.get(
       this.ETHERSCAN_API_URL,
       {
         params: params,
@@ -58,7 +58,7 @@ class EtherscanClient implements EthApiClient {
   ): Map<string, MintCountObject> => {
     const mintCount: Map<string, MintCountObject> = new Map();
     if (apiResponse) {
-      for (let result of apiResponse) {
+      for (const result of apiResponse) {
         if (isWithinMinutes(result["timeStamp"], minutesToCheck)) {
           if (result["from"] === BotConstants.BLACK_HOLE_ADDRESS) {
             const itemFromMap = mintCount.get(result["contractAddress"]);

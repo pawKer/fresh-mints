@@ -10,7 +10,7 @@ const readyEvent = {
     console.log(`Online as ${client?.user?.tag}`);
     client?.user?.setActivity("Candy Crush");
     await restartAllRunningCrons(client);
-    let logApiReqs = new cron.CronJob("0 * * * *", async () => {
+    const logApiReqs = new cron.CronJob("0 * * * *", async () => {
       logApiRequests(client.apiClient);
     });
     logApiReqs.start();
