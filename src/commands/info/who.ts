@@ -13,7 +13,7 @@ const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   );
 
   if (addressMap && addressMap.size > 0) {
-    exampleEmbed.addField(`Wallets 💸`, `\u200B`);
+    exampleEmbed.addField(`WALLETS 💸`, `\u200B`);
     let index = 1;
     addressMap.forEach((value, key) => {
       exampleEmbed.addField(
@@ -25,7 +25,12 @@ const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   }
   if (contractMap && contractMap.size > 0) {
     let index = 1;
-    exampleEmbed.addField(`Contracts 📜`, `\u200B`);
+    // An empty field for space
+    exampleEmbed.addField(
+      `\u200B`,
+      `\u200B`
+    );
+    exampleEmbed.addField(`CONTRACTS 📜`, `\u200B`);
     contractMap.forEach((value, key) => {
       exampleEmbed.addField(
         `${index}. ${value.name}`,
