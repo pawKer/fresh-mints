@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Collection from "@discordjs/collection";
 import { Command } from "../../../@types/bot";
+import { AddressData } from "../../../@types/bot/ServerDataDTO";
 import DEFAULT_WALLETS from "../../utils/default_wallets";
 
 const loadDefaultWalletsCommand: Command = {
@@ -12,11 +13,11 @@ const loadDefaultWalletsCommand: Command = {
     const cacheItem = client.serverCache.get(interaction.guild.id);
     if (!cacheItem) return;
     if (!cacheItem.addressMap) {
-      cacheItem.addressMap = new Collection<string, string>();
+      cacheItem.addressMap = new Collection<string, AddressData>();
     }
     for (const item of DEFAULT_WALLETS) {
       if (!cacheItem.addressMap.get(item.address)) {
-        cacheItem.addressMap.set(item.address, item.name);
+        cacheItem.addressMap.set(item.address, {name: item.name});
       }
     }
     await client.db.save(interaction.guild.id, {

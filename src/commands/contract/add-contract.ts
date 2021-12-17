@@ -34,7 +34,7 @@ const addContractCommand: Command = {
       if (!cacheItem.contractMap) {
         cacheItem.contractMap = new Map();
       }
-      cacheItem.contractMap.set(eth_address, nickname);
+      cacheItem.contractMap.set(eth_address, {name: nickname});
       await client.db.save(guild.id, { contractMap: cacheItem.contractMap });
       await interaction.reply("New address saved.");
     } else {

@@ -5,7 +5,7 @@ import { getFollowingInfoEmbed } from "../../embeds/embeds";
 import BotConstants from "../../utils/constants";
 const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   const cacheResult: ServerData | undefined = data;
-  const addressMap: Map<string, string> | undefined = cacheResult?.addressMap;
+  const addressMap = cacheResult?.addressMap;
   const contractMap = cacheResult?.contractMap;
   const exampleEmbed = getFollowingInfoEmbed(
     addressMap ? addressMap.size : 0,
@@ -13,11 +13,11 @@ const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   );
 
   if (addressMap && addressMap.size > 0) {
-    exampleEmbed.addField(`Wallets 💸`, `👇👇👇`);
+    exampleEmbed.addField(`Wallets 💸`, `\u200B`);
     let index = 1;
     addressMap.forEach((value, key) => {
       exampleEmbed.addField(
-        `${index}. ${value}`,
+        `${index}. ${value.name}`,
         `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
       );
       index++;
@@ -25,10 +25,10 @@ const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   }
   if (contractMap && contractMap.size > 0) {
     let index = 1;
-    exampleEmbed.addField(`Contracts 📜`, `👇👇👇`);
+    exampleEmbed.addField(`Contracts 📜`, `\u200B`);
     contractMap.forEach((value, key) => {
       exampleEmbed.addField(
-        `${index}. ${value}`,
+        `${index}. ${value.name}`,
         `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
       );
       index++;

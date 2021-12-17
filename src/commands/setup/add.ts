@@ -32,7 +32,7 @@ const addCommand: Command = {
       if (!cacheItem.addressMap) {
         cacheItem.addressMap = new Map();
       }
-      cacheItem.addressMap.set(eth_address, nickname);
+      cacheItem.addressMap.set(eth_address, {name: nickname});
       await client.db.save(guild.id, { addressMap: cacheItem.addressMap });
       await interaction.reply("New address saved.");
     } else {

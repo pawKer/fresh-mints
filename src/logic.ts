@@ -15,6 +15,7 @@ import {
 } from "./embeds/embeds";
 import BotConstants from "./utils/constants";
 import cron from "cron";
+import { AddressData } from "../@types/bot/ServerDataDTO";
 
 const addFieldsToEmbed = (
   mintCountMap: Map<string, MintCountObject>,
@@ -48,7 +49,7 @@ const addFieldsToEmbed = (
 const getMintsForAddress = async (
   client: DiscordClient,
   address: string,
-  name: string,
+  data: AddressData,
   minutesToCheck: number,
   serverId: string,
   infoChannel: undefined | TextChannel,
@@ -57,7 +58,11 @@ const getMintsForAddress = async (
   let mintCount: Map<string, MintCountObject>;
   const cacheItem = client.requestCache.get(address);
   if (cacheItem && cacheItem.nextUpdate && Date.now() < cacheItem.nextUpdate) {
+    if(data.lastIdRead && data.lastIdRead === cacheItem.id) {
+      return;
+    }
     mintCount = cacheItem.mintedMap;
+    data.lastIdRead = cacheItem.id;
   } else {
     try {
       const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
@@ -70,9 +75,11 @@ const getMintsForAddress = async (
         mintedMap: mintCount,
         nextUpdate: res.nextUpdate,
         lastUpdated: Date.now().toString(),
+        id: res.id
       });
+      data.lastIdRead = res.id;
     } catch (e) {
-      handleApiErrors(e, serverId, infoChannel, name, address, minutesToCheck);
+      handleApiErrors(e, serverId, infoChannel, data.name, address, minutesToCheck);
       return;
     }
   }
@@ -128,11 +135,11 @@ const getMintedForFollowingAddresses = async (
 
   let noUpdates = true;
   if (addressMap) {
-    for (const [address, name] of addressMap.entries()) {
+    for (const [address, data] of addressMap.entries()) {
       const mintCount = await getMintsForAddress(
         client,
         address,
-        name,
+        data,
         minutesToCheck,
         serverId,
         infoChannel
@@ -140,7 +147,7 @@ const getMintedForFollowingAddresses = async (
 
       if (!mintCount) continue;
 
-      const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(name, address);
+      const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(data.name, address);
 
       addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
 
@@ -151,11 +158,11 @@ const getMintedForFollowingAddresses = async (
     }
   }
   if (contractMap) {
-    for (const [address, name] of contractMap.entries()) {
+    for (const [address, data] of contractMap.entries()) {
       const mintCount = await getMintsForAddress(
         client,
         address,
-        name,
+        data,
         minutesToCheck,
         serverId,
         infoChannel,
@@ -165,7 +172,7 @@ const getMintedForFollowingAddresses = async (
       if (!mintCount) continue;
 
       const mintInfoEmbed: MessageEmbed = getBasicContractMintInfoEmbed(
-        name,
+        data.name,
         address
       );
 

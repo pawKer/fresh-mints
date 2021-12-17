@@ -5,7 +5,7 @@ import {
   EthApiResponse,
   MintCountObject,
 } from "../../@types/bot";
-import { isWithinMinutes } from "../utils/utils";
+import { getUniqueId, isWithinMinutes } from "../utils/utils";
 import BotConstants from "../utils/constants";
 
 interface CovalentParams {
@@ -44,6 +44,7 @@ class CovalentClient implements EthApiClient {
     return {
       mintCount,
       nextUpdate: new Date(res.data.next_update_at).getTime(),
+      id: getUniqueId()
     };
   }
 

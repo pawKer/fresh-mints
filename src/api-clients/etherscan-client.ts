@@ -8,7 +8,7 @@ import {
   ResultTransaction,
 } from "../../@types/bot";
 import BotConstants from "../utils/constants";
-import { isWithinMinutes } from "../utils/utils";
+import { getUniqueId, isWithinMinutes } from "../utils/utils";
 
 class EtherscanClient implements EthApiClient {
   NAME = "Etherscan";
@@ -49,6 +49,7 @@ class EtherscanClient implements EthApiClient {
     return {
       mintCount,
       nextUpdate: Date.now() + 60 * 1000,
+      id: getUniqueId()
     };
   }
 
