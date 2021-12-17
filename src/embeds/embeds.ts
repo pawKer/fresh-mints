@@ -18,7 +18,7 @@ const getErrorEmbed = (
 
 const getBasicMintInfoEmbed = (name: string, address: string): MessageEmbed => {
   return new MessageEmbed()
-    .setColor("#0099ff")
+    .setColor("#7bbb57")
     .setTitle(`💸 - ${name}`)
     .setURL(`https://etherscan.io/address/${address}`)
     .setTimestamp();
@@ -29,7 +29,7 @@ const getBasicContractMintInfoEmbed = (
   address: string
 ): MessageEmbed => {
   return new MessageEmbed()
-    .setColor("#8000FF")
+    .setColor("#FF7F50")
     .setTitle(`📜 - ${name}`)
     .setURL(`https://etherscan.io/address/${address}`)
     .setTimestamp();
@@ -40,7 +40,7 @@ const getFollowingInfoEmbed = (
   contractCount: number
 ): MessageEmbed => {
   return new MessageEmbed()
-    .setColor("#0099ff")
+    .setColor("#7bbb57")
     .setTitle("Following list")
     .setDescription(
       `Currently watching ${count} addresses and ${contractCount} contracts.`
@@ -57,7 +57,7 @@ const getNoUpdatesEmbed = (minutes: number): MessageEmbed => {
 
 const getHelpEmbed = (): MessageEmbed => {
   return new MessageEmbed()
-    .setColor("#0099ff")
+    .setColor("#7bbb57")
     .setTitle("Commands")
     .setDescription(`The following commands are available:`)
     .addFields(
@@ -112,7 +112,7 @@ const getInfoEmbed = (
   messagesStatus: boolean | undefined
 ): MessageEmbed => {
   const infoEmbed = new MessageEmbed()
-    .setColor("#0099ff")
+    .setColor("#7bbb57")
     .setTitle("Channel config info")
     .setDescription(`The following channels are being used for bot messages:`)
     .addFields(
