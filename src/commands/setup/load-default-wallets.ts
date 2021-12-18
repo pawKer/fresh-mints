@@ -17,7 +17,7 @@ const loadDefaultWalletsCommand: Command = {
     }
     for (const item of DEFAULT_WALLETS) {
       if (!cacheItem.addressMap.get(item.address)) {
-        cacheItem.addressMap.set(item.address, {name: item.name});
+        cacheItem.addressMap.set(item.address, { name: item.name });
       }
     }
     await client.db.save(interaction.guild.id, {

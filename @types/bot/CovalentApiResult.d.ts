@@ -3,7 +3,7 @@ interface DecodedParams {
   type: string;
   indexed: boolean;
   decoded: boolean;
-  value: string | boolean;
+  value: string;
 }
 
 interface CovalentLogEvents {

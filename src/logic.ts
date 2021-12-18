@@ -58,7 +58,7 @@ const getMintsForAddress = async (
   let mintCount: Map<string, MintCountObject>;
   const cacheItem = client.requestCache.get(address);
   if (cacheItem && cacheItem.nextUpdate && Date.now() < cacheItem.nextUpdate) {
-    if(data.lastIdRead && data.lastIdRead === cacheItem.id) {
+    if (data.lastIdRead && data.lastIdRead === cacheItem.id) {
       return;
     }
     mintCount = cacheItem.mintedMap;
@@ -75,11 +75,18 @@ const getMintsForAddress = async (
         mintedMap: mintCount,
         nextUpdate: res.nextUpdate,
         lastUpdated: Date.now().toString(),
-        id: res.id
+        id: res.id,
       });
       data.lastIdRead = res.id;
     } catch (e) {
-      handleApiErrors(e, serverId, infoChannel, data.name, address, minutesToCheck);
+      handleApiErrors(
+        e,
+        serverId,
+        infoChannel,
+        data.name,
+        address,
+        minutesToCheck
+      );
       return;
     }
   }
@@ -147,7 +154,10 @@ const getMintedForFollowingAddresses = async (
 
       if (!mintCount) continue;
 
-      const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(data.name, address);
+      const mintInfoEmbed: MessageEmbed = getBasicMintInfoEmbed(
+        data.name,
+        address
+      );
 
       addFieldsToEmbed(mintCount, mintInfoEmbed, minutesToCheck);
 

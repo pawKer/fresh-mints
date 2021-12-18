@@ -60,7 +60,15 @@ const logApiRequests = (apiClient: EthApiClient): void => {
 };
 
 const getUniqueId = (): string => {
-  return Math.floor((1 + Math.random()) * 0x10000000000000).toString(16).substring(1);
-}
+  return Math.floor((1 + Math.random()) * 0x10000000000000)
+    .toString(16)
+    .substring(1);
+};
 
-export { isWithinMinutes, readCommands, readEvents, logApiRequests, getUniqueId };
+export {
+  isWithinMinutes,
+  readCommands,
+  readEvents,
+  logApiRequests,
+  getUniqueId,
+};

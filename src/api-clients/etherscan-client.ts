@@ -49,7 +49,7 @@ class EtherscanClient implements EthApiClient {
     return {
       mintCount,
       nextUpdate: Date.now() + 60 * 1000,
-      id: getUniqueId()
+      id: getUniqueId(),
     };
   }
 

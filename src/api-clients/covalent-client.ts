@@ -13,6 +13,20 @@ interface CovalentParams {
   pageSize: number;
 }
 
+/*
+Mints
+For wallet:
+* Need to come from black hole address
+* Need to go to the address of the owner
+* Transaction from address needs to be the owner address
+* The value should be null
+* The operation should be Transfer
+For contract:
+* Need to come from black hole address
+* The to_address should be the address of the contract
+* The value should be null
+* The operation should be Transfer
+*/
 class CovalentClient implements EthApiClient {
   NAME = "Covalent";
   COVALENT_PARAMS: CovalentParams = {
@@ -44,7 +58,7 @@ class CovalentClient implements EthApiClient {
     return {
       mintCount,
       nextUpdate: new Date(res.data.next_update_at).getTime(),
-      id: getUniqueId()
+      id: getUniqueId(),
     };
   }
 
@@ -70,57 +84,49 @@ class CovalentClient implements EthApiClient {
             ) {
               continue;
             }
-
-            const fromAddr = log_event.decoded.params[0].value;
-            const toAddr = log_event.decoded.params[1].value;
-            const value = log_event.decoded.params[2].value;
+            const operation = log_event.decoded.name;
             const collectionName = log_event.sender_name;
             const collectionTicker = log_event.sender_contract_ticker_symbol;
             const collectionAddress = log_event.sender_address;
-            const operation = log_event.decoded.name;
-            /*
-              Mints
-              For wallet:
-              * Need to come from black hole address
-              * Need to go to the address of the owner
-              * Transaction from address needs to be the owner address
-              * The value should be null
-              * The operation should be Transfer
-              For contract:
-              * Need to come from black hole address
-              * The to_address should be the address of the contract
-              * The value should be null
-              * The operation should be Transfer
-            */
-            if (isContract) {
-              if (
-                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-                collectionAddress === apiResponse.data.address &&
-                value === null &&
-                operation === "Transfer"
-              ) {
-                this.addToMap(
-                  mintCount,
-                  collectionAddress,
-                  collectionName,
-                  collectionTicker
-                );
-              }
-            } else {
-              if (
-                fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-                toAddr === apiResponse.data.address &&
-                item.from_address === apiResponse.data.address &&
-                value === null &&
-                operation === "Transfer"
-              ) {
-                this.addToMap(
-                  mintCount,
-                  collectionAddress,
-                  collectionName,
-                  collectionTicker
-                );
-              }
+            let shouldAdd = false;
+            if (operation === "TransferSingle") {
+              const fromAddr = log_event.decoded.params[1].value;
+              const toAddr = log_event.decoded.params[2].value;
+              const valueName = log_event.decoded.params[4].name;
+              const value = log_event.decoded.params[4].value;
+              shouldAdd = this.shouldAdd(
+                fromAddr,
+                toAddr,
+                item.from_address,
+                collectionAddress,
+                apiResponse.data.address,
+                value,
+                valueName,
+                isContract
+              );
+            } else if (operation === "Transfer") {
+              const fromAddr = log_event.decoded.params[0].value;
+              const toAddr = log_event.decoded.params[1].value;
+              const valueName = log_event.decoded.params[2].name;
+              const value = log_event.decoded.params[2].value;
+              shouldAdd = this.shouldAdd(
+                fromAddr,
+                toAddr,
+                item.from_address,
+                collectionAddress,
+                apiResponse.data.address,
+                value,
+                valueName,
+                isContract
+              );
+            }
+            if (shouldAdd) {
+              this.addToMap(
+                mintCount,
+                collectionAddress,
+                collectionName,
+                collectionTicker
+              );
             }
           }
         } else {
@@ -146,6 +152,39 @@ class CovalentClient implements EthApiClient {
     } else {
       itemFromMap.tokenIds.push("");
     }
+  }
+
+  private shouldAdd(
+    fromAddr: string,
+    toAddr: string,
+    txFrom: string,
+    collectionAddr: string,
+    trackedAddr: string,
+    txValue: string | null,
+    txValueName: string,
+    isContract?: boolean
+  ): boolean {
+    if (txValueName === "value" && txValue !== null) {
+      return false;
+    }
+
+    if (isContract) {
+      if (
+        fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+        collectionAddr === trackedAddr
+      ) {
+        return true;
+      }
+    } else {
+      if (
+        fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
+        toAddr === trackedAddr &&
+        txFrom === trackedAddr
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 export default CovalentClient;

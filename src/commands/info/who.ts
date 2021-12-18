@@ -26,10 +26,7 @@ const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
   if (contractMap && contractMap.size > 0) {
     let index = 1;
     // An empty field for space
-    exampleEmbed.addField(
-      `\u200B`,
-      `\u200B`
-    );
+    exampleEmbed.addField(`\u200B`, `\u200B`);
     exampleEmbed.addField(`CONTRACTS 📜`, `\u200B`);
     contractMap.forEach((value, key) => {
       exampleEmbed.addField(
