@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { Guild } from "discord.js";
 import { Command } from "../../../@types/bot";
 import ethereum_address from "ethereum-address";
+import BotConstants from "../../utils/constants";
 
 const addCommand: Command = {
   data: new SlashCommandBuilder()
@@ -31,6 +32,12 @@ const addCommand: Command = {
     if (ethereum_address.isAddress(eth_address)) {
       if (!cacheItem.addressMap) {
         cacheItem.addressMap = new Map();
+      }
+      if (cacheItem.addressMap.size === BotConstants.ADDRESS_FOLLOW_LIMIT) {
+        await interaction.reply(
+          `You are already following ${BotConstants.ADDRESS_FOLLOW_LIMIT} addresses, please remove some before adding more.`
+        );
+        return;
       }
       cacheItem.addressMap.set(eth_address, { name: nickname });
       await client.db.save(guild.id, { addressMap: cacheItem.addressMap });

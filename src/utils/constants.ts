@@ -10,5 +10,6 @@ class BotConstants {
   static readonly TEST_GUILD_ID = "912779325235920936";
   static readonly TEST_BOT_ID = "915621429079330868";
   static readonly PROD_BOT_ID = "912778050435948614";
+  static readonly ADDRESS_FOLLOW_LIMIT = 50;
 }
 export default BotConstants;
