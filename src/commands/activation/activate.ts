@@ -19,6 +19,15 @@ const activateCommand: Command = {
     const cacheItem = client.serverCache.get(guild.id);
 
     if (!cacheItem || !inputKey) return;
+
+    if (cacheItem.activated) {
+      await interaction.reply({
+        content: "This server has already been activated.",
+        ephemeral: true,
+      });
+      return;
+    }
+
     const activationKey = await client.activationKeysDb.find(inputKey);
 
     if (!activationKey) {
