@@ -1,8 +1,6 @@
 import { Client, Collection, Intents } from "discord.js";
 import dotenv from "dotenv";
-import MongoDb from "./mongo";
 import {
-  DatabaseRepository,
   ServerData,
   EthApiClient,
   RequestCacheItem,
@@ -12,10 +10,13 @@ import {
 } from "../@types/bot";
 import CovalentClient from "./api-clients/covalent-client";
 import { readCommands, readEvents } from "./utils/utils";
+import Database from "./db";
+import ServerSettingsRepository from "./repositories/server-settings-repository";
+import { ActivationKeysRepository } from "./repositories/activation-keys-repository";
 dotenv.config();
 
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
-const mongo: DatabaseRepository = new MongoDb(MONGO_URI);
+const mongo = new Database(MONGO_URI);
 
 const apiClient: EthApiClient = new CovalentClient();
 
@@ -30,7 +31,8 @@ client.commands = new Collection<string, Command>();
 client.events = new Collection<string, DiscordEvent>();
 client.serverCache = serverCache;
 client.requestCache = requestCache;
-client.db = mongo;
+client.db = new ServerSettingsRepository();
+client.activationKeysDb = new ActivationKeysRepository();
 client.apiClient = apiClient;
 client.useEtherscan = false;
 

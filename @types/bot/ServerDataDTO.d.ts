@@ -12,4 +12,6 @@ export interface ServerDataDTO {
   alertRole?: string | null;
   guildName?: string;
   contractMap?: Map<string, AddressData>;
+  activated?: boolean;
+  activatedAt?: string;
 }

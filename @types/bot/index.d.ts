@@ -1,4 +1,4 @@
-import { DatabaseRepository } from "./DatabaseRepository";
+import { IServerSettingsRepository } from "./DatabaseRepository";
 import { ServerData } from "./ServerData";
 import { ServerDataDTO } from "./ServerDataDTO";
 import { MongoResult } from "./MongoResult";
@@ -13,9 +13,12 @@ import { Command } from "./Command";
 import { DiscordEvent } from "./DiscordEvent";
 import { DiscordClient } from "./DiscordClient";
 import { EthApiResponse } from "./EthApiResponse";
+import { MongoResultActivationKeys } from "./MongoResultActivationKeys";
+import { IActivationKeysRepository } from "./IActivationKeysRepository";
+import { ActivationKeyDTO } from "./ActivationKeyDTO";
 
 export {
-  DatabaseRepository,
+  IServerSettingsRepository,
   ServerData,
   ServerDataDTO,
   MongoResult,
@@ -30,4 +33,7 @@ export {
   DiscordEvent,
   DiscordClient,
   EthApiResponse,
+  MongoResultActivationKeys,
+  IActivationKeysRepository,
+  ActivationKeyDTO,
 };

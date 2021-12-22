@@ -1,17 +1,11 @@
-import mongoose from "mongoose";
-import { ServerSettings } from "./db-models/models";
-import { DatabaseRepository, ServerDataDTO, MongoResult } from "../@types/bot";
+import { ServerSettings } from "../db-models/server-settings";
+import {
+  ServerDataDTO,
+  MongoResult,
+  IServerSettingsRepository,
+} from "../../@types/bot";
 
-class MongoDb implements DatabaseRepository {
-  db: mongoose.Connection;
-  constructor(uri: string) {
-    mongoose.connect(uri, { keepAlive: true });
-    this.db = mongoose.connection;
-    this.db.on("error", console.error.bind(console, "connection error: "));
-    this.db.once("open", function () {
-      console.log("Connected to MongoDb successfully");
-    });
-  }
+class ServerSettingsRepository implements IServerSettingsRepository {
   async save(serverId: string, serverSettings: ServerDataDTO): Promise<void> {
     try {
       await ServerSettings.findOneAndUpdate(
@@ -56,4 +50,4 @@ class MongoDb implements DatabaseRepository {
     return Promise.reject();
   }
 }
-export default MongoDb;
+export default ServerSettingsRepository;

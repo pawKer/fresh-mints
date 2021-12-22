@@ -109,6 +109,7 @@ const getMintedForFollowingAddresses = async (
     contractMap,
     minutesToCheck,
     alertRole,
+    activated,
   } = cacheResult;
 
   if (!alertChannelId || !minutesToCheck) {
@@ -123,6 +124,19 @@ const getMintedForFollowingAddresses = async (
 
   if (!guild) {
     console.error(`[${serverId}] GET_DATA`, "Guild not populated");
+    return;
+  }
+
+  if (!activated) {
+    cacheResult.areScheduledMessagesOn = false;
+    try {
+      await client.db.save(guild.id, { areScheduledMessagesOn: false });
+      console.log(
+        `[${guild.id}] Server not active anymore, turning off active messages.`
+      );
+    } catch (e) {
+      console.log(`[${guild.id}] Failed to disable scheduled messages`, e);
+    }
     return;
   }
 

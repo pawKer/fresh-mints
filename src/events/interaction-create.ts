@@ -49,6 +49,15 @@ const interactionCreateEvent = {
       client.serverCache.set(guild.id, data);
     }
 
+    if (!data.activated && interaction.commandName !== "activate") {
+      await interaction.reply({
+        content:
+          "The bot is not currently activated on this server. Use the `/activate` command to activate it. To get an access key you need to join the FreshMints Discord.",
+        ephemeral: true,
+      });
+      return;
+    }
+
     if (
       !data.alertChannelId &&
       interaction.commandName !== "help" &&

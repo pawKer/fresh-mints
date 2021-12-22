@@ -1,18 +1,20 @@
 import { Client, Collection } from "discord.js";
 import {
   Command,
-  DatabaseRepository,
+  IServerSettingsRepository,
   DiscordEvent,
   EthApiClient,
   ServerData,
   RequestCacheItem,
+  IActivationKeysRepository,
 } from ".";
 interface DiscordClient extends Client {
   commands: Collection<string, Command>;
   events: Collection<string, DiscordEvent>;
   serverCache: Collection<string, ServerData>;
   requestCache: Collection<string, RequestCacheItem>;
-  db: DatabaseRepository;
+  db: IServerSettingsRepository;
+  activationKeysDb: IActivationKeysRepository;
   apiClient: EthApiClient;
   useEtherscan: boolean;
 }
