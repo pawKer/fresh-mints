@@ -145,6 +145,8 @@ const getMintedForFollowingAddresses = async (
     } catch (e) {
       console.log(`[${guild.id}] Failed to disable scheduled messages`, e);
     }
+    const scheduledJob = client.scheduledJobs.get(serverId);
+    if (scheduledJob) scheduledJob.wallets.stop();
     return;
   }
 
