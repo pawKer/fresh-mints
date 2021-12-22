@@ -18,24 +18,28 @@ const toggleCommand: Command = {
       (cacheItem.addressMap && cacheItem.addressMap.size > 0) ||
       (cacheItem.contractMap && cacheItem.contractMap.size > 0)
     ) {
+      let scheduledJob = client.scheduledJobs.get(guild.id);
       if (cacheItem.areScheduledMessagesOn) {
         cacheItem.areScheduledMessagesOn = false;
         await client.db.save(guild.id, { areScheduledMessagesOn: false });
-        if (cacheItem.scheduledMessage) cacheItem.scheduledMessage.stop();
+        if (scheduledJob) scheduledJob.wallets.stop();
         await interaction.reply("Turned scheduled messages off.");
         console.log(`[${guild.id}] - Turned scheduled messages off.`);
       } else {
         cacheItem.areScheduledMessagesOn = true;
         await client.db.save(guild.id, { areScheduledMessagesOn: true });
-        if (!cacheItem.scheduledMessage) {
-          cacheItem.scheduledMessage = new cron.CronJob(
-            cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
-            async () => {
-              getMintedForFollowingAddresses(client, guild.id);
-            }
-          );
+        if (!scheduledJob) {
+          scheduledJob = {
+            wallets: new cron.CronJob(
+              cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
+              async () => {
+                getMintedForFollowingAddresses(client, guild.id);
+              }
+            ),
+          };
+          client.scheduledJobs.set(guild.id, scheduledJob);
         }
-        cacheItem.scheduledMessage.start();
+        scheduledJob.wallets.start();
         await interaction.reply("Turned scheduled messages on.");
         console.log(`[${guild.id}] - Turned scheduled messages on.`);
       }

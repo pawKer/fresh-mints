@@ -41,16 +41,21 @@ const setScheduleCommand: Command = {
       schedule: cacheItem.schedule,
     });
 
-    if (cacheItem.scheduledMessage) {
-      cacheItem.scheduledMessage.stop();
+    let scheduledJob = client.scheduledJobs.get(guild.id);
+
+    if (scheduledJob) {
+      scheduledJob.wallets.stop();
     }
-    cacheItem.scheduledMessage = new cron.CronJob(
-      cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
-      async () => {
-        getMintedForFollowingAddresses(client, guild.id);
-      }
-    );
-    cacheItem.scheduledMessage.start();
+    scheduledJob = {
+      wallets: new cron.CronJob(
+        cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
+        async () => {
+          getMintedForFollowingAddresses(client, guild.id);
+        }
+      ),
+    };
+    client.scheduledJobs.set(guild.id, scheduledJob);
+    scheduledJob.wallets.start();
     await interaction.reply(
       `Set schedule to \`${cronstrue.toString(cacheItem.schedule)}\`.`
     );

@@ -1,5 +1,5 @@
 import { Guild, GuildMember, Interaction } from "discord.js";
-import { DiscordClient, MongoResult, ServerData } from "../../@types/bot";
+import { DiscordClient, MongoResult, ServerDataDTO } from "../../@types/bot";
 import BotConstants from "../utils/constants";
 
 const interactionCreateEvent = {
@@ -29,7 +29,7 @@ const interactionCreateEvent = {
       return;
     }
 
-    let data: ServerData | undefined = client.serverCache.get(guild.id);
+    let data: ServerDataDTO | undefined = client.serverCache.get(guild.id);
     if (!data) {
       const dbData: MongoResult | null = await client.db.find(guild.id);
       if (!dbData) {

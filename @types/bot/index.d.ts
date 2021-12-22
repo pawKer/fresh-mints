@@ -1,5 +1,4 @@
 import { IServerSettingsRepository } from "./DatabaseRepository";
-import { ServerData } from "./ServerData";
 import { ServerDataDTO } from "./ServerDataDTO";
 import { MongoResult } from "./MongoResult";
 import { EtherscanParams } from "./EtherscanParams";
@@ -19,7 +18,6 @@ import { ActivationKeyDTO } from "./ActivationKeyDTO";
 
 export {
   IServerSettingsRepository,
-  ServerData,
   ServerDataDTO,
   MongoResult,
   EtherscanParams,

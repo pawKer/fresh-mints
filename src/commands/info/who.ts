@@ -1,10 +1,10 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { Guild, MessageEmbed } from "discord.js";
-import { Command, ServerData } from "../../../@types/bot";
+import { Command, ServerDataDTO } from "../../../@types/bot";
 import { getFollowingInfoEmbed } from "../../embeds/embeds";
 import BotConstants from "../../utils/constants";
-const getFollowingListAsMessage = (data: ServerData): MessageEmbed => {
-  const cacheResult: ServerData | undefined = data;
+const getFollowingListAsMessage = (data: ServerDataDTO): MessageEmbed => {
+  const cacheResult: ServerDataDTO | undefined = data;
   const addressMap = cacheResult?.addressMap;
   const contractMap = cacheResult?.contractMap;
   const exampleEmbed = getFollowingInfoEmbed(

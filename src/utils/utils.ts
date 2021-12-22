@@ -1,4 +1,9 @@
-import { Command, DiscordEvent, EthApiClient } from "../../@types/bot";
+import {
+  Command,
+  DiscordClient,
+  DiscordEvent,
+  EthApiClient,
+} from "../../@types/bot";
 import glob from "glob";
 
 const isWithinMinutes = (timestamp: string, mins: number): boolean => {
@@ -59,6 +64,12 @@ const logApiRequests = (apiClient: EthApiClient): void => {
   apiClient.API_REQUEST_COUNT = 0;
 };
 
+const clearCache = (client: DiscordClient): void => {
+  console.log("Clearing all server and request cache...");
+  client.serverCache.clear();
+  client.requestCache.clear();
+};
+
 const getUniqueId = (): string => {
   return Math.floor((1 + Math.random()) * 0x10000000000000)
     .toString(16)
@@ -71,4 +82,5 @@ export {
   readEvents,
   logApiRequests,
   getUniqueId,
+  clearCache,
 };

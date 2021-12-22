@@ -5,7 +5,7 @@ import {
   EthApiResponse,
   MintCountObject,
   MongoResult,
-  ServerData,
+  ServerDataDTO,
 } from "../@types/bot";
 import {
   getBasicContractMintInfoEmbed,
@@ -97,10 +97,25 @@ const getMintedForFollowingAddresses = async (
   client: DiscordClient,
   serverId: string
 ): Promise<void> => {
-  const cacheResult: ServerData | undefined = client.serverCache.get(serverId);
-  if (!cacheResult) {
-    console.error(`[${serverId}] GET_DATA`, "Cache not populated");
+  const guild: Guild | undefined = client.guilds.cache.get(serverId);
+
+  if (!guild) {
+    console.error(`[${serverId}] GET_DATA`, "Guild not populated");
     return;
+  }
+
+  let cacheResult: ServerDataDTO | undefined = client.serverCache.get(serverId);
+  if (!cacheResult) {
+    console.warn(`[${serverId}] GET_DATA`, "Cache not populated");
+    cacheResult = (await client.db.find(serverId)) as ServerDataDTO;
+    if (!cacheResult) {
+      console.error(
+        `[${serverId}] GET_DATA`,
+        "Data from DB not populated. Returning..."
+      );
+      return;
+    }
+    client.serverCache.set(serverId, cacheResult);
   }
   const {
     alertChannelId,
@@ -117,13 +132,6 @@ const getMintedForFollowingAddresses = async (
       `[${serverId}] GET_DATA`,
       "Alert channel or minutes to check not populated."
     );
-    return;
-  }
-
-  const guild: Guild | undefined = client.guilds.cache.get(serverId);
-
-  if (!guild) {
-    console.error(`[${serverId}] GET_DATA`, "Guild not populated");
     return;
   }
 
@@ -245,7 +253,7 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
   const runningCrons: MongoResult[] = await client.db.findAllStartedJobs();
 
   for (const dbData of runningCrons) {
-    const serverData: ServerData = dbData;
+    const serverData: ServerDataDTO = dbData;
     if (!serverData.minutesToCheck || !serverData.schedule) {
       serverData.minutesToCheck = BotConstants.DEFAULT_MINUTES_TO_CHECK;
       serverData.schedule = BotConstants.DEFAULT_SCHEDULE;
@@ -255,14 +263,11 @@ const restartAllRunningCrons = async (client: DiscordClient): Promise<void> => {
       });
     }
     client.serverCache.set(dbData._id, serverData);
-    const cacheItem = client.serverCache.get(dbData._id);
-    cacheItem!.scheduledMessage = new cron.CronJob(
-      serverData.schedule,
-      async () => {
-        await getMintedForFollowingAddresses(client, dbData._id);
-      }
-    );
-    cacheItem!.scheduledMessage.start();
+    const scheduledMessage = new cron.CronJob(serverData.schedule, async () => {
+      await getMintedForFollowingAddresses(client, dbData._id);
+    });
+    client.scheduledJobs.set(dbData._id, { wallets: scheduledMessage });
+    scheduledMessage.start();
   }
   if (runningCrons.length > 0)
     client?.user?.setActivity("the specified wallets", { type: "WATCHING" });
