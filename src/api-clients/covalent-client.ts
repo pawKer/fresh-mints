@@ -41,22 +41,27 @@ class CovalentClient implements EthApiClient {
     isContract?: boolean
   ): Promise<EthApiResponse> {
     const url = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
+    const startTime = Date.now();
     const apiRes: AxiosResponse<never, never> = await axios.get(url, {
       auth: {
         username: process.env.COVALENT_USER ? process.env.COVALENT_USER : "",
         password: "",
       },
     });
+    const endTime = Date.now();
+    const elapsed = (endTime - startTime) / 1000;
+    console.log(`Api request for ${address} took ${elapsed} seconds`);
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
-    const mintCount: Map<string, MintCountObject> = this.getMintsAsMap(
+    const mintCounts: Map<string, MintCountObject>[] = this.getMintsAsMap(
       res,
       minutesToCheck,
       isContract
     );
 
     return {
-      mintCount,
+      mintCount: mintCounts[0],
+      osMintCount: mintCounts[1],
       nextUpdate: new Date(res.data.next_update_at).getTime(),
       id: getUniqueId(),
     };
@@ -66,91 +71,122 @@ class CovalentClient implements EthApiClient {
     apiResponse: CovalentApiResult,
     minutesToCheck: number,
     isContract?: boolean
-  ): Map<string, MintCountObject> => {
+  ): Map<string, MintCountObject>[] => {
     const mintCount: Map<string, MintCountObject> = new Map();
+    const osMintCount: Map<string, MintCountObject> = new Map();
     if (apiResponse.data && apiResponse.data.items) {
       for (const item of apiResponse.data.items) {
         const date = new Date(item.block_signed_at);
+        const toAddrLabel = item.to_address_label;
         const timestamp = date.getTime();
-        if (isWithinMinutes(timestamp.toString(), minutesToCheck)) {
-          if (!item.log_events || !(item.log_events.length > 0)) {
+        let tokenId = "";
+        if (!isWithinMinutes(timestamp.toString(), minutesToCheck)) {
+          break;
+        }
+
+        if (!item.log_events || !(item.log_events.length > 0)) {
+          continue;
+        }
+        
+        for (const log_event of item.log_events) {
+          if (
+            !log_event.decoded ||
+            !log_event.decoded.params ||
+            !(log_event.decoded.params.length === 3)
+          ) {
             continue;
           }
-          for (const log_event of item.log_events) {
-            if (
-              !log_event.decoded ||
-              !log_event.decoded.params ||
-              !(log_event.decoded.params.length === 3)
-            ) {
-              continue;
-            }
-            const operation = log_event.decoded.name;
-            const collectionName = log_event.sender_name;
-            const collectionTicker = log_event.sender_contract_ticker_symbol;
-            const collectionAddress = log_event.sender_address;
-            let shouldAdd = false;
-            if (operation === "TransferSingle") {
-              const fromAddr = log_event.decoded.params[1].value;
-              const toAddr = log_event.decoded.params[2].value;
-              const valueName = log_event.decoded.params[4].name;
-              const value = log_event.decoded.params[4].value;
-              shouldAdd = this.shouldAdd(
-                fromAddr,
-                toAddr,
-                item.from_address,
-                collectionAddress,
-                apiResponse.data.address,
-                value,
-                valueName,
-                isContract
-              );
-            } else if (operation === "Transfer") {
-              const fromAddr = log_event.decoded.params[0].value;
-              const toAddr = log_event.decoded.params[1].value;
-              const valueName = log_event.decoded.params[2].name;
-              const value = log_event.decoded.params[2].value;
-              shouldAdd = this.shouldAdd(
-                fromAddr,
-                toAddr,
-                item.from_address,
-                collectionAddress,
-                apiResponse.data.address,
-                value,
-                valueName,
-                isContract
-              );
-            }
-            if (shouldAdd) {
-              this.addToMap(
-                mintCount,
-                collectionAddress,
-                collectionName,
-                collectionTicker
-              );
-            }
+          const operation = log_event.decoded.name;
+          const collectionName = log_event.sender_name;
+          const collectionTicker = log_event.sender_contract_ticker_symbol;
+          const collectionAddress = log_event.sender_address;
+          let shouldAdd = false;
+          if (operation === "TransferSingle") {
+            const fromAddr = log_event.decoded.params[1].value;
+            const toAddr = log_event.decoded.params[2].value;
+            const valueName = log_event.decoded.params[4].name;
+            const value = log_event.decoded.params[4].value;
+            shouldAdd = this.shouldAdd(
+              fromAddr,
+              toAddr,
+              item.from_address,
+              collectionAddress,
+              apiResponse.data.address,
+              value,
+              valueName,
+              toAddrLabel,
+              isContract
+            );
+          } else if (operation === "Transfer") {
+            const fromAddr = log_event.decoded.params[0].value;
+            const toAddr = log_event.decoded.params[1].value;
+            const valueName = log_event.decoded.params[2].name;
+            const value = log_event.decoded.params[2].value;
+            tokenId =
+              log_event.raw_log_topics.length === 4
+                ? parseInt(log_event.raw_log_topics[3], 16).toString()
+                : "";
+            shouldAdd = this.shouldAdd(
+              fromAddr,
+              toAddr,
+              item.from_address,
+              collectionAddress,
+              apiResponse.data.address,
+              value,
+              valueName,
+              toAddrLabel,
+              isContract
+            );
           }
-        } else {
-          break;
+          if (shouldAdd) {
+            this.addToMap(
+              mintCount,
+              osMintCount,
+              collectionAddress,
+              collectionName,
+              collectionTicker,
+              tokenId,
+              toAddrLabel,
+              isContract
+            );
+          }
         }
       }
     }
-    return mintCount;
+    return [mintCount, osMintCount];
   };
 
   private addToMap(
     mintCount: Map<string, MintCountObject>,
+    osMintCount: Map<string, MintCountObject>,
     collectionAddress: string,
     collectionName: string,
-    collectionTicker: string
+    collectionTicker: string,
+    tokenId: string,
+    toAddrLabel: string | null,
+    isContract?: boolean
   ) {
+    const itemFromOsMap = osMintCount.get(collectionAddress);
+    if (toAddrLabel === "OpenSea" && !isContract) {
+      if (!itemFromOsMap) {
+        osMintCount.set(collectionAddress, {
+          tokenIds: [tokenId],
+          collectionName: collectionName || collectionTicker,
+        });
+      } else {
+        itemFromOsMap.tokenIds.push(tokenId);
+      }
+
+      return;
+    }
     const itemFromMap = mintCount.get(collectionAddress);
     if (!itemFromMap) {
       mintCount.set(collectionAddress, {
-        tokenIds: [""],
+        tokenIds: [tokenId],
         collectionName: collectionName || collectionTicker,
       });
     } else {
-      itemFromMap.tokenIds.push("");
+      itemFromMap.tokenIds.push(tokenId);
     }
   }
 
@@ -162,6 +198,7 @@ class CovalentClient implements EthApiClient {
     trackedAddr: string,
     txValue: string | null,
     txValueName: string,
+    toAddrLabel: string | null,
     isContract?: boolean
   ): boolean {
     if (txValueName === "value" && txValue !== null) {
@@ -181,6 +218,9 @@ class CovalentClient implements EthApiClient {
         toAddr === trackedAddr &&
         txFrom === trackedAddr
       ) {
+        return true;
+      }
+      if (toAddrLabel === "OpenSea" && toAddr === trackedAddr) {
         return true;
       }
     }

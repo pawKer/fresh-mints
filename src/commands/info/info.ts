@@ -21,7 +21,8 @@ const serverInfoCommand: Command = {
             cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE
           ),
           cacheItem.alertRole,
-          cacheItem.areScheduledMessagesOn
+          cacheItem.areScheduledMessagesOn,
+          cacheItem.trackOpenseaBuys
         ),
       ],
     });

@@ -1,6 +1,7 @@
 interface AddressData {
   name: string;
   lastIdRead?: string;
+  isContract?: boolean;
 }
 export interface ServerDataDTO {
   alertChannelId?: string;
@@ -11,7 +12,7 @@ export interface ServerDataDTO {
   schedule?: string;
   alertRole?: string | null;
   guildName?: string;
-  contractMap?: Map<string, AddressData>;
+  trackOpenseaBuys?: boolean;
   activated?: boolean;
   activatedAt?: string;
 }

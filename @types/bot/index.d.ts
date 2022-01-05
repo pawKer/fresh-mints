@@ -5,6 +5,7 @@ import { EtherscanParams } from "./EtherscanParams";
 import { ResultTransaction } from "./ResultTransaction";
 import { EtherscanApiResult } from "./EtherscanApiResult";
 import { MintCountObject } from "./MintCountObject";
+import { MintCountResponse } from "./MintCountResponse";
 import { EthApiClient } from "./EthApiClient";
 import { CovalentApiResult } from "./CovalentApiResult";
 import { RequestCacheItem } from "./RequestCacheItem";
@@ -34,4 +35,5 @@ export {
   MongoResultActivationKeys,
   IActivationKeysRepository,
   ActivationKeyDTO,
+  MintCountResponse,
 };

@@ -5,7 +5,7 @@ import { Command } from "../../../@types/bot";
 import { default as cronTime } from "cron-time-generator";
 import cronstrue from "cronstrue";
 import BotConstants from "../../utils/constants";
-import { getMintedForFollowingAddresses } from "../../logic";
+import { getMintsScheduledJob } from "../../logic/scheduled-job-task";
 import cron from "cron";
 
 const setScheduleCommand: Command = {
@@ -50,7 +50,7 @@ const setScheduleCommand: Command = {
       wallets: new cron.CronJob(
         cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
         async () => {
-          getMintedForFollowingAddresses(client, guild.id);
+          getMintsScheduledJob(client, guild.id);
         }
       ),
     };

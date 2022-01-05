@@ -31,25 +31,32 @@ const addContractCommand: Command = {
     const cacheItem = client.serverCache.get(guild.id);
     if (!cacheItem || !eth_address || !nickname) return;
 
-    if (ethereum_address.isAddress(eth_address)) {
-      if (!cacheItem.contractMap) {
-        cacheItem.contractMap = new Map();
-      }
-      if (cacheItem.contractMap.size === BotConstants.ADDRESS_FOLLOW_LIMIT) {
-        await interaction.reply(
-          `You are already following ${BotConstants.ADDRESS_FOLLOW_LIMIT} addresses, please remove some before adding more.`
-        );
-        return;
-      }
-      cacheItem.contractMap.set(eth_address, { name: nickname });
-      await client.db.save(guild.id, { contractMap: cacheItem.contractMap });
-      await interaction.reply("New address saved.");
-    } else {
+    if (!ethereum_address.isAddress(eth_address)) {
       await interaction.reply({
         content: "Provided ETH address is not valid.",
         ephemeral: true,
       });
+      return;
     }
+
+    if (!cacheItem.addressMap) {
+      cacheItem.addressMap = new Map();
+    }
+
+    if (cacheItem.addressMap.size === BotConstants.ADDRESS_FOLLOW_LIMIT) {
+      await interaction.reply(
+        `You are already following ${BotConstants.ADDRESS_FOLLOW_LIMIT} addresses, please remove some before adding more.`
+      );
+      return;
+    }
+
+    cacheItem.addressMap.set(eth_address, {
+      name: nickname,
+      isContract: true,
+    });
+
+    await client.db.save(guild.id, { addressMap: cacheItem.addressMap });
+    await interaction.reply("New address saved.");
   },
 };
 export default addContractCommand;

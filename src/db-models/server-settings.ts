@@ -23,12 +23,15 @@ const ServerSettingsSchema: mongoose.Schema<MongoResult> =
     schedule: String,
     alertRole: String,
     guildName: String,
-    contractMap: Map,
     activated: {
       type: Boolean,
       default: false,
     },
     activatedAt: String,
+    trackOpenseaBuys: {
+      type: Boolean,
+      default: false,
+    },
   });
 
 const ServerSettings: mongoose.Model<MongoResult> = mongoose.model<MongoResult>(

@@ -1,4 +1,4 @@
-import { restartAllRunningCrons } from "../logic";
+import { restartAllRunningCrons } from "../logic/restart-all-crons";
 import cron from "cron";
 import { logApiRequests, clearCache } from "../utils/utils";
 import { Command, DiscordClient } from "../../@types/bot";

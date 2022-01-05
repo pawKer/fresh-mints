@@ -6,10 +6,12 @@ import BotConstants from "../../utils/constants";
 const getFollowingListAsMessage = (data: ServerDataDTO): MessageEmbed => {
   const cacheResult: ServerDataDTO | undefined = data;
   const addressMap = cacheResult?.addressMap;
-  const contractMap = cacheResult?.contractMap;
+  const contractsCount = addressMap
+    ? [...addressMap].filter((it) => it[1].isContract).length
+    : 0;
   const exampleEmbed = getFollowingInfoEmbed(
     addressMap ? addressMap.size : 0,
-    contractMap ? contractMap.size : 0
+    contractsCount
   );
 
   if (addressMap && addressMap.size > 0) {
@@ -22,19 +24,20 @@ const getFollowingListAsMessage = (data: ServerDataDTO): MessageEmbed => {
       );
       index++;
     });
-  }
-  if (contractMap && contractMap.size > 0) {
-    let index = 1;
-    // An empty field for space
-    exampleEmbed.addField(`\u200B`, `\u200B`);
-    exampleEmbed.addField(`CONTRACTS 📜`, `\u200B`);
-    contractMap.forEach((value, key) => {
-      exampleEmbed.addField(
-        `${index}. ${value.name}`,
-        `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
-      );
-      index++;
-    });
+    if (contractsCount > 0) {
+      index = 1;
+      exampleEmbed.addField(`\u200B`, `\u200B`);
+      exampleEmbed.addField(`CONTRACTS 📜`, `\u200B`);
+      addressMap.forEach((value, key) => {
+        if (value.isContract) {
+          exampleEmbed.addField(
+            `${index}. ${value.name}`,
+            `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
+          );
+          index++;
+        }
+      });
+    }
   }
   return exampleEmbed;
 };

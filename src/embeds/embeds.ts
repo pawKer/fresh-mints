@@ -62,20 +62,24 @@ const getHelpEmbed = (): MessageEmbed => {
     .setDescription(`The following commands are available:`)
     .addFields(
       {
-        name: "/alert-channel",
-        value: "Sets the current channel as the channel for the bot alerts.",
+        name: "/alert-channel `<channel>`",
+        value: "Sets the provided channel as the channel for the bot alerts.",
       },
       {
-        name: "/info-channel",
-        value: "Sets the current channel as the channel for bot info.",
+        name: "/info-channel `<channel>`",
+        value: "Sets the provided channel as the channel for bot info.",
       },
       {
         name: "/add `<address>` `<nickname>`",
-        value: "Adds new ETH address to watchlist. ",
+        value: "Adds new ETH wallet address to watchlist. ",
+      },
+      {
+        name: "/add-contract `<address>` `<nickname>`",
+        value: "Adds new ETH contractaddress to watchlist. ",
       },
       {
         name: "/remove `<address>`",
-        value: "Removes ETH address to watchlist.",
+        value: "Removes ETH address from watchlist.",
       },
       {
         name: "/who",
@@ -96,6 +100,10 @@ const getHelpEmbed = (): MessageEmbed => {
         value: "Clears the alert role.",
       },
       {
+        name: "/track-opensea-buys",
+        value: "Toggle the tracking of NFTs bought on OpenSea.",
+      },
+      {
         name: "/info",
         value: "Displays the current server configuration.",
       },
@@ -109,7 +117,8 @@ const getInfoEmbed = (
   infoChannelId: string | undefined,
   schedule: string,
   alertRole: string | undefined | null,
-  messagesStatus: boolean | undefined
+  messagesStatus: boolean | undefined,
+  trackOpenseaBuys?: boolean
 ): MessageEmbed => {
   const infoEmbed = new MessageEmbed()
     .setColor("#7bbb57")
@@ -135,6 +144,10 @@ const getInfoEmbed = (
       {
         name: "Alert role",
         value: alertRole ? `<@&${alertRole}>` : "No role set.",
+      },
+      {
+        name: "Tracking OpenSea Buys",
+        value: trackOpenseaBuys ? "ON 🟢" : "OFF 🔴",
       }
     )
     .setTimestamp();

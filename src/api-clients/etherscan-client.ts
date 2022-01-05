@@ -10,6 +10,7 @@ import {
 import BotConstants from "../utils/constants";
 import { getUniqueId, isWithinMinutes } from "../utils/utils";
 
+// TODO: Review this class to make sure it still meets reqs
 class EtherscanClient implements EthApiClient {
   NAME = "Etherscan";
   ETHERSCAN_API_URL = "https://api.etherscan.io/api";
@@ -48,6 +49,7 @@ class EtherscanClient implements EthApiClient {
     );
     return {
       mintCount,
+      osMintCount: new Map<string, MintCountObject>(),
       nextUpdate: Date.now() + 60 * 1000,
       id: getUniqueId(),
     };

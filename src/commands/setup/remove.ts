@@ -9,13 +9,13 @@ const removeCommand: Command = {
     .addStringOption((option) =>
       option
         .setRequired(true)
-        .setName("eth-wallet-address")
+        .setName("eth-address")
         .setDescription("The wallet address to remove.")
     ),
   async execute(client, interaction) {
     if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
-    const eth_address = interaction.options.getString("eth-wallet-address");
+    const eth_address = interaction.options.getString("eth-address");
 
     const cacheItem = client.serverCache.get(guild.id);
 

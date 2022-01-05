@@ -3,7 +3,7 @@ import { Guild } from "discord.js";
 import { Command } from "../../@types/bot";
 import BotConstants from "../utils/constants";
 import cron from "cron";
-import { getMintedForFollowingAddresses } from "../logic";
+import { getMintsScheduledJob } from "../logic/scheduled-job-task";
 
 const toggleCommand: Command = {
   data: new SlashCommandBuilder()
@@ -14,10 +14,7 @@ const toggleCommand: Command = {
     const guild: Guild = interaction.guild;
     const cacheItem = client.serverCache.get(guild.id);
     if (!cacheItem) return;
-    if (
-      (cacheItem.addressMap && cacheItem.addressMap.size > 0) ||
-      (cacheItem.contractMap && cacheItem.contractMap.size > 0)
-    ) {
+    if (cacheItem.addressMap && cacheItem.addressMap.size > 0) {
       let scheduledJob = client.scheduledJobs.get(guild.id);
       if (cacheItem.areScheduledMessagesOn) {
         cacheItem.areScheduledMessagesOn = false;
@@ -33,7 +30,7 @@ const toggleCommand: Command = {
             wallets: new cron.CronJob(
               cacheItem.schedule || BotConstants.DEFAULT_SCHEDULE,
               async () => {
-                getMintedForFollowingAddresses(client, guild.id);
+                getMintsScheduledJob(client, guild.id);
               }
             ),
           };

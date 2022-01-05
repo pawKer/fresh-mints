@@ -29,7 +29,7 @@ class ServerSettingsRepository implements IServerSettingsRepository {
       res = (await ServerSettings.findOne({
         _id: serverId,
       })) as MongoResult;
-      console.log(`[${serverId}] - Fetched data from DB`);
+      console.log(`[${serverId}] Fetched server data from DB`);
       return res;
     } catch (error) {
       console.error(`${serverId}`, error);
