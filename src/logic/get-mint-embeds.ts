@@ -46,7 +46,7 @@ const getMintEmbeds = (
       const names = collectionNames.length > 0 ? collectionNames : "these";
       if (i === 1) {
         embed.setDescription(
-          `Bought ${names} on OpenSea :regional_indicator_o::regional_indicator_s: in the last ${minutesToCheck} minutes`
+          `Bought ${names} on OpenSea in the last ${minutesToCheck} minutes`
         );
       } else {
         embed.setDescription(
