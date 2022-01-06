@@ -18,11 +18,13 @@ const getFollowingListAsMessage = (data: ServerDataDTO): MessageEmbed => {
     exampleEmbed.addField(`WALLETS 💸`, `\u200B`);
     let index = 1;
     addressMap.forEach((value, key) => {
-      exampleEmbed.addField(
-        `${index}. ${value.name}`,
-        `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
-      );
-      index++;
+      if (!value.isContract) {
+        exampleEmbed.addField(
+          `${index}. ${value.name}`,
+          `[${key}](${BotConstants.ETHERSCAN_ADDRESS_URL}/${key})`
+        );
+        index++;
+      }
     });
     if (contractsCount > 0) {
       index = 1;
