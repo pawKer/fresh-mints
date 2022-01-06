@@ -41,16 +41,12 @@ class CovalentClient implements EthApiClient {
     isContract?: boolean
   ): Promise<EthApiResponse> {
     const url = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
-    const startTime = Date.now();
     const apiRes: AxiosResponse<never, never> = await axios.get(url, {
       auth: {
         username: process.env.COVALENT_USER ? process.env.COVALENT_USER : "",
         password: "",
       },
     });
-    const endTime = Date.now();
-    const elapsed = (endTime - startTime) / 1000;
-    console.log(`Api request for ${address} took ${elapsed} seconds`);
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
     const mintCounts: Map<string, MintCountObject>[] = this.getMintsAsMap(
@@ -87,7 +83,7 @@ class CovalentClient implements EthApiClient {
         if (!item.log_events || !(item.log_events.length > 0)) {
           continue;
         }
-        
+
         for (const log_event of item.log_events) {
           if (
             !log_event.decoded ||
