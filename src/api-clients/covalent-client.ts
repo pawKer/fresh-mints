@@ -96,6 +96,7 @@ class CovalentClient implements EthApiClient {
           const collectionName = log_event.sender_name;
           const collectionTicker = log_event.sender_contract_ticker_symbol;
           const collectionAddress = log_event.sender_address;
+          const txHash = log_event.tx_hash;
           let shouldAdd = false;
           if (operation === "TransferSingle") {
             const fromAddr = log_event.decoded.params[1].value;
@@ -120,7 +121,7 @@ class CovalentClient implements EthApiClient {
             const value = log_event.decoded.params[2].value;
             tokenId =
               log_event.raw_log_topics.length === 4
-                ? parseInt(log_event.raw_log_topics[3], 16).toString()
+                ? BigInt(log_event.raw_log_topics[3]).toString()
                 : "";
             shouldAdd = this.shouldAdd(
               fromAddr,
@@ -143,6 +144,7 @@ class CovalentClient implements EthApiClient {
               collectionTicker,
               tokenId,
               toAddrLabel,
+              txHash,
               isContract
             );
           }
@@ -160,6 +162,7 @@ class CovalentClient implements EthApiClient {
     collectionTicker: string,
     tokenId: string,
     toAddrLabel: string | null,
+    txHash: string,
     isContract?: boolean
   ) {
     const itemFromOsMap = osMintCount.get(collectionAddress);
@@ -168,9 +171,11 @@ class CovalentClient implements EthApiClient {
         osMintCount.set(collectionAddress, {
           tokenIds: [tokenId],
           collectionName: collectionName || collectionTicker,
+          txHashes: [txHash],
         });
       } else {
         itemFromOsMap.tokenIds.push(tokenId);
+        itemFromOsMap.txHashes.push(txHash);
       }
 
       return;
@@ -180,9 +185,11 @@ class CovalentClient implements EthApiClient {
       mintCount.set(collectionAddress, {
         tokenIds: [tokenId],
         collectionName: collectionName || collectionTicker,
+        txHashes: [txHash],
       });
     } else {
       itemFromMap.tokenIds.push(tokenId);
+      itemFromMap.txHashes.push(txHash);
     }
   }
 

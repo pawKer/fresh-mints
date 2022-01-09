@@ -29,6 +29,7 @@ const getMintEmbeds = (
       const openseaLink = `[Opensea](${
         BotConstants.OPENSEA_URL
       }/${nftAddress}/${info.tokenIds[0] || "1"})`;
+      const etherscanTxLink = `[Etherscan TX](${BotConstants.ETHERSCAN_TX_URL}/${info.txHashes[0]})`;
 
       let collectionName;
       if (info.collectionName) {
@@ -40,7 +41,10 @@ const getMintEmbeds = (
 
       const fieldTitle = `${collectionName} - Qty: ${info.tokenIds.length}`;
 
-      embed.addField(fieldTitle, `${etherscanLink} - ${openseaLink}`);
+      embed.addField(
+        fieldTitle,
+        `${etherscanLink} - ${openseaLink} - ${etherscanTxLink}`
+      );
     }
     if (mintCountMaps[i].size > 0) {
       const names = collectionNames.length > 0 ? collectionNames : "these";

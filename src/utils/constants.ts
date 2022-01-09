@@ -1,6 +1,7 @@
 class BotConstants {
   static readonly ETHERSCAN_ADDRESS_URL: string =
     "https://etherscan.io/address";
+  static readonly ETHERSCAN_TX_URL: string = "https://etherscan.io/tx";
   static readonly OPENSEA_URL: string = "https://opensea.io/assets";
   static readonly OWNER_ID: string = "204731639438376970";
   static readonly DEFAULT_SCHEDULE: string = "* * * * *";
