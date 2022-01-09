@@ -69,9 +69,11 @@ class EtherscanClient implements EthApiClient {
               mintCount.set(result["contractAddress"], {
                 tokenIds: [result["tokenID"]],
                 collectionName: result["tokenName"] || result["tokenSymbol"],
+                txHashes: [result["hash"]],
               });
             } else {
               itemFromMap.tokenIds.push(result["tokenID"]);
+              itemFromMap.txHashes.push(result["hash"]);
             }
           }
         } else {
