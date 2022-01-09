@@ -61,7 +61,8 @@ const interactionCreateEvent = {
     if (
       !data.alertChannelId &&
       interaction.commandName !== "help" &&
-      interaction.commandName !== "alert-channel"
+      interaction.commandName !== "alert-channel" &&
+      interaction.commandName !== "activate"
     ) {
       await interaction.reply({
         content:
