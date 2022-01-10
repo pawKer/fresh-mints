@@ -104,17 +104,17 @@ const getMintsScheduledJob = async (
   }
 
   const results = await Promise.all(walletPromises);
-
-  for (const sentUpdates of results) {
-    if (sentUpdates) {
+  const updatesFrom = [];
+  for (const res of results) {
+    if (res) {
       noUpdates = false;
-      break;
+      updatesFrom.push(res);
     }
   }
 
   if (!noUpdates) {
     if (alertRole) {
-      await channel.send(`<@&${alertRole}>`);
+      await channel.send(`New updates from ${updatesFrom} <@&${alertRole}>`);
     }
   } else {
     if (infoChannel) {

@@ -13,7 +13,7 @@ const checkAndSendUpdates = async (
   alertChannel: TextChannel,
   infoChannel?: TextChannel,
   trackOpenseaBuys?: boolean
-): Promise<boolean | undefined> => {
+): Promise<string | undefined> => {
   const mintCountResp = await getMintsForAddress(
     client,
     address,
@@ -24,7 +24,7 @@ const checkAndSendUpdates = async (
     data.isContract
   );
 
-  if (!mintCountResp) return false;
+  if (!mintCountResp) return;
 
   const embedsToSend = getMintEmbeds(
     mintCountResp,
@@ -37,8 +37,8 @@ const checkAndSendUpdates = async (
     for (const embed of embedsToSend) {
       await alertChannel.send({ embeds: [embed] });
     }
-    return true;
+    return data.name;
   }
-  return false;
+  return;
 };
 export { checkAndSendUpdates };
