@@ -122,8 +122,8 @@ const getInfoEmbed = (
 ): MessageEmbed => {
   const infoEmbed = new MessageEmbed()
     .setColor("#7bbb57")
-    .setTitle("Channel config info")
-    .setDescription(`The following channels are being used for bot messages:`)
+    .setTitle("Config info")
+    .setDescription(`These are the current bot settings:`)
     .addFields(
       {
         name: "Scheduled messages status",

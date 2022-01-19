@@ -20,7 +20,7 @@ const setMinutesCommand: Command = {
     const minutes = interaction.options.getInteger("minutes");
     if (member.id !== BotConstants.OWNER_ID) {
       await interaction.reply({
-        content: `This command is only available for the bot owner.`,
+        content: `This command is currently only available for the bot owner.`,
         ephemeral: true,
       });
       return;

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { Guild } from "discord.js";
+import { Guild, GuildMember } from "discord.js";
 import { Command } from "../../../@types/bot";
 // Had to change module to commmonjs because of this import
 import { default as cronTime } from "cron-time-generator";
@@ -23,6 +23,16 @@ const setScheduleCommand: Command = {
   async execute(client, interaction) {
     if (!interaction.guild) return;
     const guild: Guild = interaction.guild;
+
+    const member = interaction.member as GuildMember;
+    if (member.id !== BotConstants.OWNER_ID) {
+      await interaction.reply({
+        content: `This command is currently only available for the bot owner.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
     const minutes = interaction.options.getInteger("minutes");
     if (!minutes) return;
     if (minutes < 1 || minutes > 60) {
