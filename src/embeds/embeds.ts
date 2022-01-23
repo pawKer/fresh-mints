@@ -164,7 +164,7 @@ const getActivationEmbed = (): MessageEmbed => {
     .addFields(
       {
         name: "OpenSea",
-        value: "TBD",
+        value: "[Click here](https://opensea.io/collection/fresh-mints-bot)",
       },
       {
         name: "Discord",
