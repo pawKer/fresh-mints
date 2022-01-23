@@ -23,4 +23,5 @@ interface DiscordClient extends Client {
   activationKeysDb: IActivationKeysRepository;
   apiClient: EthApiClient;
   useEtherscan: boolean;
+  MAINTAINANCE_MODE: boolean;
 }

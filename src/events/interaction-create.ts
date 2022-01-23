@@ -1,5 +1,6 @@
 import { Guild, GuildMember, Interaction } from "discord.js";
 import { DiscordClient, MongoResult, ServerDataDTO } from "../../@types/bot";
+import { getActivationEmbed } from "../embeds/embeds";
 import BotConstants from "../utils/constants";
 
 const interactionCreateEvent = {
@@ -7,11 +8,21 @@ const interactionCreateEvent = {
   async execute(interaction: Interaction) {
     if (!interaction.isCommand()) return;
     const client = interaction.client as DiscordClient;
+    const member = interaction.member as GuildMember;
+
+    if (client.MAINTAINANCE_MODE && member.id !== BotConstants.OWNER_ID) {
+      await interaction.reply({
+        content:
+          "The bot is currently in maintainance mode. Please try again soon.",
+        ephemeral: true,
+      });
+      return;
+    }
+
     const command = client.commands.get(interaction.commandName);
 
     if (!command) return;
 
-    const member = interaction.member as GuildMember;
     const guild: Guild | null = interaction.guild;
 
     if (!guild) return;
@@ -51,8 +62,7 @@ const interactionCreateEvent = {
 
     if (!data.activated && interaction.commandName !== "activate") {
       await interaction.reply({
-        content:
-          "The bot is not currently activated on this server. Use the `/activate` command to activate it. To get an access key you need to join the FreshMints Discord.",
+        embeds: [getActivationEmbed()],
         ephemeral: true,
       });
       return;

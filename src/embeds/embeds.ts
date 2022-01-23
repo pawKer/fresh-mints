@@ -75,7 +75,7 @@ const getHelpEmbed = (): MessageEmbed => {
       },
       {
         name: "/add-contract `<address>` `<nickname>`",
-        value: "Adds new ETH contractaddress to watchlist. ",
+        value: "Adds new ETH contract address to watchlist. ",
       },
       {
         name: "/remove `<address>`",
@@ -154,6 +154,27 @@ const getInfoEmbed = (
   return infoEmbed;
 };
 
+const getActivationEmbed = (): MessageEmbed => {
+  const infoEmbed = new MessageEmbed()
+    .setColor("#e81224")
+    .setTitle("Server not activated")
+    .setDescription(
+      "This server is not currently activated. If you have an activation key use the `/activate` command to activate it. To get an activation key you need to get the Fresh Mints NFT and join the Discord server to verify ownership."
+    )
+    .addFields(
+      {
+        name: "OpenSea",
+        value: "TBD",
+      },
+      {
+        name: "Discord",
+        value: `[Click here](https://discord.gg/7EPagRsSCH)`,
+      }
+    )
+    .setTimestamp();
+  return infoEmbed;
+};
+
 export {
   getErrorEmbed,
   getBasicMintInfoEmbed,
@@ -162,4 +183,5 @@ export {
   getHelpEmbed,
   getInfoEmbed,
   getBasicContractMintInfoEmbed,
+  getActivationEmbed,
 };

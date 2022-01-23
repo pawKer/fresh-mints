@@ -37,6 +37,7 @@ client.db = new ServerSettingsRepository();
 client.activationKeysDb = new ActivationKeysRepository();
 client.apiClient = apiClient;
 client.useEtherscan = false;
+client.MAINTAINANCE_MODE = false;
 
 readCommands().then((commands) => {
   commands.forEach((cmd) => {

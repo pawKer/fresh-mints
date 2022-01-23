@@ -10,6 +10,7 @@ const ActivationKeysSchema: mongoose.Schema<MongoResultActivationKeys> =
   new mongoose.Schema<MongoResultActivationKeys>({
     _id: String,
     userId: reqString,
+    userName: String,
     used: {
       type: Boolean,
       required: true,

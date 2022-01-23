@@ -7,6 +7,14 @@ const getMintsScheduledJob = async (
   client: DiscordClient,
   serverId: string
 ): Promise<void> => {
+  if (client.MAINTAINANCE_MODE) {
+    console.warn(
+      `[${serverId}]`,
+      "Maintainance mode is on, scheduled task skipped."
+    );
+    return;
+  }
+
   const guild: Guild | undefined = client.guilds.cache.get(serverId);
 
   if (!guild) {
@@ -123,7 +131,12 @@ const getMintsScheduledJob = async (
   }
   const endTime = Date.now();
   const elapsed = (endTime - startTime) / 1000;
-  console.log("Full check for server took", elapsed, "seconds");
+  console.log(
+    `[${serverId}]`,
+    "Full check for server took",
+    elapsed,
+    "seconds"
+  );
 };
 
 export { getMintsScheduledJob };

@@ -43,14 +43,6 @@ const DEFAULT_WALLETS = [
     address: "0x2ce780d7c743a57791b835a9d6f998b15bbba5a4",
     name: "Pak",
   },
-  {
-    address: "0x982e09ebd5bf6f4f9cce5d0c84514fb96d91c5f9",
-    name: "Kfish",
-  },
-  {
-    address: "0x982e09ebd5bf6f4f9cce5d0c84514fb96d91c5f9",
-    name: "sa1nt",
-  },
 ];
 
 export default DEFAULT_WALLETS;
