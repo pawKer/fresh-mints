@@ -23,6 +23,7 @@ const getMintEmbeds = (
       forAddressData.name,
       forAddress
     );
+    embed.setFooter(forAddressData.lastIdRead || "");
     const collectionNames: string[] = [];
     for (const [nftAddress, info] of mintCountMaps[i].entries()) {
       const etherscanLink = `[Etherscan](${BotConstants.ETHERSCAN_ADDRESS_URL}/${nftAddress})`;
