@@ -52,6 +52,30 @@ class ActivationKeysRepository implements IActivationKeysRepository {
     }
   }
 
+  async saveAndUpdateByServerId(
+    serverId: string,
+    data: ActivationKeyDTO
+  ): Promise<void> {
+    try {
+      await ActivationKeys.findOneAndUpdate(
+        {
+          serverId: serverId,
+        },
+        data,
+        {
+          upsert: true,
+        }
+      );
+      console.log(`[serverId: ${serverId}] - Saved / updated activation key!`);
+    } catch (error) {
+      console.error(
+        `[serverId: ${serverId}] - Error saving activation key state.`,
+        error
+      );
+      throw error;
+    }
+  }
+
   async find(id: string): Promise<MongoResultActivationKeys | null> {
     let res: MongoResultActivationKeys | null;
     try {

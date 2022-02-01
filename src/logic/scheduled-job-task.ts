@@ -60,7 +60,7 @@ const getMintsScheduledJob = async (
     cacheResult.areScheduledMessagesOn = false;
     try {
       console.log(
-        `[${guild.id}] Server not active anymore, turning off active messages.`
+        `[${guild.id}] Server not active anymore, turning off scheduled messages.`
       );
       await client.db.save(guild.id, { areScheduledMessagesOn: false });
     } catch (e) {

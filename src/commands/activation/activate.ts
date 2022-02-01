@@ -78,7 +78,7 @@ const activateCommand: Command = {
     }
 
     await interaction.reply({
-      content: "This server has now been activated! 🎉",
+      content: "This server has now been activated 🎉! 🟢",
       ephemeral: true,
     });
   },
