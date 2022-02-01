@@ -104,6 +104,11 @@ const getHelpEmbed = (): MessageEmbed => {
         value: "Toggle the tracking of NFTs bought on OpenSea.",
       },
       {
+        name: "/deactivate",
+        value:
+          "Deactivate the bot on this server. This allows the activation key to be used on a different server.",
+      },
+      {
         name: "/info",
         value: "Displays the current server configuration.",
       },
