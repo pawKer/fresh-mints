@@ -1,6 +1,9 @@
 import { MessageEmbed } from "discord.js";
 import { MintCountResponse } from "../../@types/bot";
-import { getBasicMintInfoEmbed } from "../embeds/embeds";
+import {
+  getBasicContractMintInfoEmbed,
+  getBasicMintInfoEmbed,
+} from "../embeds/embeds";
 import BotConstants from "../utils/constants";
 
 const getMintEmbeds = (
@@ -19,10 +22,13 @@ const getMintEmbeds = (
   }
 
   for (let i = 0; i <= maxIndex; i++) {
-    const embed: MessageEmbed = getBasicMintInfoEmbed(
-      forAddressData.name,
-      forAddress
-    );
+    let embed: MessageEmbed;
+    if (isContract) {
+      embed = getBasicContractMintInfoEmbed(forAddressData.name, forAddress);
+    } else {
+      embed = getBasicMintInfoEmbed(forAddressData.name, forAddress);
+    }
+
     embed.setFooter(forAddressData.lastIdRead || "");
     const collectionNames: string[] = [];
     for (const [nftAddress, info] of mintCountMaps[i].entries()) {
