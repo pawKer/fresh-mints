@@ -60,9 +60,15 @@ const getMintEmbeds = (
           `Bought ${names} on OpenSea in the last ${minutesToCheck} minutes`
         );
       } else {
-        embed.setDescription(
-          `Minted ${names} in the last ${minutesToCheck} minutes`
-        );
+        if (isContract) {
+          embed.setDescription(
+            `${names} was minted in the last ${minutesToCheck} minutes`
+          );
+        } else {
+          embed.setDescription(
+            `Minted ${names} in the last ${minutesToCheck} minutes`
+          );
+        }
       }
       embedsToReturn.push(embed);
     }

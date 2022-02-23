@@ -131,12 +131,13 @@ const getMintsScheduledJob = async (
   }
   const endTime = Date.now();
   const elapsed = (endTime - startTime) / 1000;
-  console.log(
-    `[${serverId}]`,
-    "Full check for server took",
-    elapsed,
-    "seconds"
-  );
+  // TODO: Clean up when not needed
+  // console.log(
+  //   `[${serverId}]`,
+  //   "Full check for server took",
+  //   elapsed,
+  //   "seconds"
+  // );
 };
 
 export { getMintsScheduledJob };
