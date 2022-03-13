@@ -88,7 +88,7 @@ class CovalentClient implements EthApiClient {
           if (
             !log_event.decoded ||
             !log_event.decoded.params ||
-            !(log_event.decoded.params.length === 3)
+            !(log_event.decoded.params.length > 0)
           ) {
             continue;
           }
@@ -98,22 +98,16 @@ class CovalentClient implements EthApiClient {
           const collectionAddress = log_event.sender_address;
           const txHash = log_event.tx_hash;
           let shouldAdd = false;
+
           if (operation === "TransferSingle") {
             const fromAddr = log_event.decoded.params[1].value;
             const toAddr = log_event.decoded.params[2].value;
             const valueName = log_event.decoded.params[4].name;
             const value = log_event.decoded.params[4].value;
-            shouldAdd = this.shouldAdd(
-              fromAddr,
-              toAddr,
-              item.from_address,
-              collectionAddress,
-              apiResponse.data.address,
-              value,
-              valueName,
-              toAddrLabel,
-              isContract
-            );
+            tokenId = log_event.decoded.params[3].value
+              ? log_event.decoded.params[3].value
+              : "";
+            shouldAdd = toAddr === apiResponse.data.address;
           } else if (operation === "Transfer") {
             const fromAddr = log_event.decoded.params[0].value;
             const toAddr = log_event.decoded.params[1].value;
@@ -216,11 +210,7 @@ class CovalentClient implements EthApiClient {
         return true;
       }
     } else {
-      if (
-        fromAddr === BotConstants.BLACK_HOLE_ADDRESS &&
-        toAddr === trackedAddr &&
-        txFrom === trackedAddr
-      ) {
+      if (toAddr === trackedAddr && txFrom === trackedAddr) {
         return true;
       }
       if (toAddrLabel === "OpenSea" && toAddr === trackedAddr) {
