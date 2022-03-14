@@ -54,7 +54,8 @@ const getMintEmbeds = (
       );
     }
     if (mintCountMaps[i].size > 0) {
-      const names = collectionNames.length > 0 ? collectionNames : "these";
+      const names =
+        collectionNames.length > 0 ? collectionNames.join(", ") : "these";
       if (i === 1) {
         embed.setDescription(
           `Bought ${names} on OpenSea in the last ${minutesToCheck} minutes`

@@ -98,9 +98,9 @@ class CovalentClient implements EthApiClient {
           const collectionAddress = log_event.sender_address;
           const txHash = log_event.tx_hash;
           let shouldAdd = false;
-
+          let fromAddr = "";
           if (operation === "TransferSingle") {
-            const fromAddr = log_event.decoded.params[1].value;
+            fromAddr = log_event.decoded.params[1].value;
             const toAddr = log_event.decoded.params[2].value;
             const valueName = log_event.decoded.params[4].name;
             const value = log_event.decoded.params[4].value;
@@ -113,7 +113,7 @@ class CovalentClient implements EthApiClient {
             // the address
             shouldAdd = false;
           } else if (operation === "Transfer") {
-            const fromAddr = log_event.decoded.params[0].value;
+            fromAddr = log_event.decoded.params[0].value;
             const toAddr = log_event.decoded.params[1].value;
             const valueName = log_event.decoded.params[2].name;
             const value = log_event.decoded.params[2].value;
@@ -140,6 +140,7 @@ class CovalentClient implements EthApiClient {
               collectionAddress,
               collectionName,
               collectionTicker,
+              fromAddr,
               tokenId,
               toAddrLabel,
               txHash,
@@ -158,13 +159,18 @@ class CovalentClient implements EthApiClient {
     collectionAddress: string,
     collectionName: string,
     collectionTicker: string,
+    fromAddr: string,
     tokenId: string,
     toAddrLabel: string | null,
     txHash: string,
     isContract?: boolean
   ) {
     const itemFromOsMap = osMintCount.get(collectionAddress);
-    if (toAddrLabel === "OpenSea" && !isContract) {
+    if (
+      (toAddrLabel === "OpenSea" ||
+        fromAddr !== BotConstants.BLACK_HOLE_ADDRESS) &&
+      !isContract
+    ) {
       if (!itemFromOsMap) {
         osMintCount.set(collectionAddress, {
           tokenIds: [tokenId],
