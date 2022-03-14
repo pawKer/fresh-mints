@@ -107,7 +107,11 @@ class CovalentClient implements EthApiClient {
             tokenId = log_event.decoded.params[3].value
               ? log_event.decoded.params[3].value
               : "";
-            shouldAdd = toAddr === apiResponse.data.address;
+            // shouldAdd = toAddr === apiResponse.data.address;
+            // Disabled as there's no way to know who initiated
+            // so gives false positive when someone sends NFTs to
+            // the address
+            shouldAdd = false;
           } else if (operation === "Transfer") {
             const fromAddr = log_event.decoded.params[0].value;
             const toAddr = log_event.decoded.params[1].value;
