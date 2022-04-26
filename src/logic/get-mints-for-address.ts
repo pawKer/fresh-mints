@@ -8,6 +8,7 @@ import {
 } from "../../@types/bot";
 import { AddressData } from "../../@types/bot/ServerDataDTO";
 import { getErrorEmbed } from "../embeds/embeds";
+import { MetricClient } from "../metrics/metric-client";
 
 const getMintsForAddress = async (
   client: DiscordClient,
@@ -31,8 +32,10 @@ const getMintsForAddress = async (
   } else {
     try {
       const res: EthApiResponse = await client.apiClient.getApiResponseAsMap(
+        serverId,
         address,
         minutesToCheck,
+        client.metrics,
         isContract
       );
       mintCount = res.mintCount;
@@ -52,7 +55,8 @@ const getMintsForAddress = async (
         infoChannel,
         data.name,
         address,
-        minutesToCheck
+        minutesToCheck,
+        client.metrics
       );
       return;
     }
@@ -71,19 +75,26 @@ const handleApiErrors = (
   infoChannel: TextChannel | undefined,
   name: string,
   address: string,
-  minutesToCheck: number
+  minutesToCheck: number,
+  metricClient: MetricClient
 ) => {
   let message: string;
+  let apiResp: string;
+  let statusCode = 0;
   if (axios.isAxiosError(e) && e.response) {
-    message = `${e.response.status} - ${JSON.stringify(e.response.data)}`;
+    statusCode = e.response.status;
+    apiResp = JSON.stringify(e.response.data);
+    message = `${statusCode} - ${apiResp}`;
   } else {
     message = e.message;
+    apiResp = e.message;
   }
   infoChannel &&
     infoChannel.send({
       embeds: [getErrorEmbed(name, address, message, minutesToCheck)],
     });
   console.error(`[${serverId}] [${address}] API_CLIENT_ERROR`, message);
+  metricClient.exposeApiError(serverId, address, statusCode, apiResp);
 };
 
 export { getMintsForAddress };

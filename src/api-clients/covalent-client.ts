@@ -7,6 +7,7 @@ import {
 } from "../../@types/bot";
 import { getUniqueId, isWithinMinutes } from "../utils/utils";
 import BotConstants from "../utils/constants";
+import { MetricClient } from "../metrics/metric-client";
 
 interface CovalentParams {
   pageNumber: number;
@@ -36,8 +37,10 @@ class CovalentClient implements EthApiClient {
   public API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
+    serverId: string,
     address: string,
     minutesToCheck: number,
+    metricsClient: MetricClient,
     isContract?: boolean
   ): Promise<EthApiResponse> {
     const url = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
@@ -47,6 +50,7 @@ class CovalentClient implements EthApiClient {
         password: "",
       },
     });
+    metricsClient.exposeApiCall(serverId, address);
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
     const mintCounts: Map<string, MintCountObject>[] = this.getMintsAsMap(

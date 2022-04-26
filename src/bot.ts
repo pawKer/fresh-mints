@@ -14,13 +14,17 @@ import Database from "./db";
 import ServerSettingsRepository from "./repositories/server-settings-repository";
 import { ActivationKeysRepository } from "./repositories/activation-keys-repository";
 import { ScheduledJobData } from "../@types/bot/DiscordClient";
+import { MetricServer } from "./metrics/metric-server";
+import { MetricClient } from "./metrics/metric-client";
 dotenv.config();
+
+const metricClient = new MetricClient();
+const metricServer = new MetricServer(metricClient.getRegister());
 
 const MONGO_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.fx8o1.mongodb.net/nft-bot?retryWrites=true&w=majority`;
 const mongo = new Database(MONGO_URI);
 
 const apiClient: EthApiClient = new CovalentClient();
-
 const serverCache: Collection<string, ServerDataDTO> = new Collection();
 const requestCache: Collection<string, RequestCacheItem> = new Collection();
 
@@ -33,9 +37,10 @@ client.events = new Collection<string, DiscordEvent>();
 client.scheduledJobs = new Collection<string, ScheduledJobData>();
 client.serverCache = serverCache;
 client.requestCache = requestCache;
-client.db = new ServerSettingsRepository();
-client.activationKeysDb = new ActivationKeysRepository();
+client.db = new ServerSettingsRepository(metricClient);
+client.activationKeysDb = new ActivationKeysRepository(metricClient);
 client.apiClient = apiClient;
+client.metrics = metricClient;
 client.useEtherscan = false;
 client.MAINTAINANCE_MODE = false;
 
@@ -56,4 +61,5 @@ readEvents().then((events) => {
   });
 });
 
+metricServer.start();
 client.login(process.env.DISCORD_API_SECRET);

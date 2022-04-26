@@ -9,6 +9,7 @@ import {
   IActivationKeysRepository,
   ServerDataDTO,
 } from ".";
+import { MetricClient } from "../../src/metrics/metric-client";
 
 interface ScheduledJobData {
   wallets: CronJob;
@@ -22,6 +23,7 @@ interface DiscordClient extends Client {
   db: IServerSettingsRepository;
   activationKeysDb: IActivationKeysRepository;
   apiClient: EthApiClient;
+  metrics: MetricClient;
   useEtherscan: boolean;
   MAINTAINANCE_MODE: boolean;
 }
