@@ -30,6 +30,10 @@ export class MetricClient {
   constructor() {
     this.#register = new Registry();
     collectDefaultMetrics({ register: this.#register });
+    this.#apiCallsCounter.inc(0);
+    this.#apiErrorsCounter.inc(0);
+    this.#dbErrorsCounter.inc(0);
+    this.#keyDbErrorsCounter.inc(0);
     this.#register.registerMetric(this.#apiCallsCounter);
     this.#register.registerMetric(this.#apiErrorsCounter);
     this.#register.registerMetric(this.#dbErrorsCounter);
