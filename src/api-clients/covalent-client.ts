@@ -171,7 +171,7 @@ class CovalentClient implements EthApiClient {
   ) {
     const itemFromOsMap = osMintCount.get(collectionAddress);
     if (
-      (toAddrLabel === "OpenSea" ||
+      (this.isOpenseaLabel(toAddrLabel) ||
         fromAddr !== BotConstants.BLACK_HOLE_ADDRESS) &&
       !isContract
     ) {
@@ -227,11 +227,18 @@ class CovalentClient implements EthApiClient {
       if (toAddr === trackedAddr && txFrom === trackedAddr) {
         return true;
       }
-      if (toAddrLabel === "OpenSea" && toAddr === trackedAddr) {
+      if (this.isOpenseaLabel(toAddrLabel) && toAddr === trackedAddr) {
         return true;
       }
     }
     return false;
+  }
+
+  private isOpenseaLabel(label: string | null): boolean {
+    return (
+      label === "Wyvern Exchange Contract (-)" ||
+      label === "OpenSea: Wyvern Exchange v1"
+    );
   }
 }
 export default CovalentClient;
