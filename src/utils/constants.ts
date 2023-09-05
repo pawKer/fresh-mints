@@ -3,14 +3,14 @@ class BotConstants {
     "https://etherscan.io/address";
   static readonly ETHERSCAN_TX_URL: string = "https://etherscan.io/tx";
   static readonly OPENSEA_URL: string = "https://opensea.io/assets";
-  static readonly OWNER_ID: string = "204731639438376970";
+  static readonly OWNER_ID: string = "<OWNER-ID>";
   static readonly DEFAULT_SCHEDULE: string = "* * * * *";
   static readonly DEFAULT_MINUTES_TO_CHECK: number = 6;
   static readonly BLACK_HOLE_ADDRESS: string =
     "0x0000000000000000000000000000000000000000";
-  static readonly TEST_GUILD_ID = "912779325235920936";
-  static readonly TEST_BOT_ID = "915621429079330868";
-  static readonly PROD_BOT_ID = "912778050435948614";
+  static readonly TEST_GUILD_ID = "<TEST-SERVER-ID>";
+  static readonly TEST_BOT_ID = "<TEST-BOT-ID>";
+  static readonly PROD_BOT_ID = "<PROD-BOT-ID>";
   static readonly ADDRESS_FOLLOW_LIMIT = 50;
 }
 export default BotConstants;
