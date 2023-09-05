@@ -7,6 +7,7 @@ import {
   MintCountObject,
   ResultTransaction,
 } from "../../@types/bot";
+import { MetricClient } from "../metrics/metric-client";
 import BotConstants from "../utils/constants";
 import { getUniqueId, isWithinMinutes } from "../utils/utils";
 
@@ -27,8 +28,10 @@ class EtherscanClient implements EthApiClient {
   API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
+    serverId: string,
     address: string,
-    minutesToCheck: number
+    minutesToCheck: number,
+    metricsClient: MetricClient
   ): Promise<EthApiResponse> {
     const params: EtherscanParams = this.ETHERSCAN_PARAMS;
     params.address = address;

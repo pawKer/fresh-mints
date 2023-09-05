@@ -4,8 +4,15 @@ import {
   MongoResult,
   IServerSettingsRepository,
 } from "../../@types/bot";
+import { MetricClient } from "../metrics/metric-client";
 
 class ServerSettingsRepository implements IServerSettingsRepository {
+  #metricClient: MetricClient;
+
+  constructor(metricClient: MetricClient) {
+    this.#metricClient = metricClient;
+  }
+
   async save(serverId: string, serverSettings: ServerDataDTO): Promise<void> {
     try {
       await ServerSettings.findOneAndUpdate(
@@ -20,6 +27,10 @@ class ServerSettingsRepository implements IServerSettingsRepository {
       console.log(`[${serverId}] - Saved server settings!`);
     } catch (error) {
       console.error(`${serverId}`, error);
+      this.#metricClient.exposeDbError(
+        serverId,
+        "Failed to save server settings"
+      );
     }
   }
 
@@ -33,6 +44,7 @@ class ServerSettingsRepository implements IServerSettingsRepository {
       return res;
     } catch (error) {
       console.error(`${serverId}`, error);
+      this.#metricClient.exposeDbError(serverId, "Failed to fetch server data");
     }
     return Promise.reject();
   }
@@ -46,6 +58,10 @@ class ServerSettingsRepository implements IServerSettingsRepository {
       return res;
     } catch (error) {
       console.error(error);
+      this.#metricClient.exposeDbError(
+        "",
+        "Failed to retrieve all started jobs"
+      );
     }
     return Promise.reject();
   }

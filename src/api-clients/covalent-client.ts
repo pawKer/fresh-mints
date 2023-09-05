@@ -7,6 +7,7 @@ import {
 } from "../../@types/bot";
 import { getUniqueId, isWithinMinutes } from "../utils/utils";
 import BotConstants from "../utils/constants";
+import { MetricClient } from "../metrics/metric-client";
 
 interface CovalentParams {
   pageNumber: number;
@@ -36,8 +37,10 @@ class CovalentClient implements EthApiClient {
   public API_REQUEST_COUNT = 0;
 
   async getApiResponseAsMap(
+    serverId: string,
     address: string,
     minutesToCheck: number,
+    metricsClient: MetricClient,
     isContract?: boolean
   ): Promise<EthApiResponse> {
     const url = `https://api.covalenthq.com/v1/1/address/${address}/transactions_v2/?page-number=${this.COVALENT_PARAMS.pageNumber}&page-size=${this.COVALENT_PARAMS.pageSize}`;
@@ -47,6 +50,7 @@ class CovalentClient implements EthApiClient {
         password: "",
       },
     });
+    metricsClient.exposeApiCall(serverId, address);
     this.API_REQUEST_COUNT++;
     const res: CovalentApiResult = apiRes.data;
     const mintCounts: Map<string, MintCountObject>[] = this.getMintsAsMap(
@@ -167,7 +171,7 @@ class CovalentClient implements EthApiClient {
   ) {
     const itemFromOsMap = osMintCount.get(collectionAddress);
     if (
-      (toAddrLabel === "OpenSea" ||
+      (this.isOpenseaLabel(toAddrLabel) ||
         fromAddr !== BotConstants.BLACK_HOLE_ADDRESS) &&
       !isContract
     ) {
@@ -223,11 +227,18 @@ class CovalentClient implements EthApiClient {
       if (toAddr === trackedAddr && txFrom === trackedAddr) {
         return true;
       }
-      if (toAddrLabel === "OpenSea" && toAddr === trackedAddr) {
+      if (this.isOpenseaLabel(toAddrLabel) && toAddr === trackedAddr) {
         return true;
       }
     }
     return false;
+  }
+
+  private isOpenseaLabel(label: string | null): boolean {
+    return (
+      label === "Wyvern Exchange Contract (-)" ||
+      label === "OpenSea: Wyvern Exchange v1"
+    );
   }
 }
 export default CovalentClient;

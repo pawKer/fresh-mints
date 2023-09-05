@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 class Database {
   constructor(uri: string) {
-    mongoose.connect(uri, { keepAlive: true });
+    mongoose.connect(uri);
     mongoose.connection.on(
       "error",
       console.error.bind(console, "connection error: ")

@@ -6,3 +6,5 @@ services:
       dockerfile: Dockerfile-pi
     container_name: fresh-mints
     restart: unless-stopped
+    ports:
+      -"3000:3000"
