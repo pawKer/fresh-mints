@@ -13,7 +13,7 @@
     "dependencies": {
         "@discordjs/builders": "^0.8.2",
         "@discordjs/rest": "^0.1.0-canary.0",
-        "axios": "^0.24.0",
+        "axios": "^1.6.0",
         "cron": "^1.8.2",
         "cron-time-generator": "^1.2.2",
         "cronstrue": "^1.122.0",
